@@ -4,6 +4,9 @@
 # 重複を自動で排除
 typeset -U path fpath cdpath
 
+# pyenv の初期化 (no-rehashで高速化・ロック競合防止)
+[[ -d $PYENV_ROOT/bin ]] && eval "$(pyenv init - --no-rehash)"
+
 export ZSH="$HOME/.oh-my-zsh"
 export PYENV_ROOT="$HOME/.pyenv"
 
@@ -46,9 +49,6 @@ plugins=(
 
 # OMZの読み込み
 source $ZSH/oh-my-zsh.sh
-
-# pyenv の初期化 (no-rehashで高速化・ロック競合防止)
-[[ -d $PYENV_ROOT/bin ]] && eval "$(pyenv init - --no-rehash)"
 
 # ---------------------------------------------------------
 # 4. History & Completion (履歴と補完)
