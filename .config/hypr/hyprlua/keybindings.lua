@@ -13,12 +13,14 @@ local fileManager = "thunar"
 local browser = "vivaldi"
 
 local fscreenshot = [[zsh -c "GSK_RENDERER=nglimages grim - | satty --filename -"]]
-local sscreenshot = [[zsh -c 'GSK_RENDERER=nglimages grim -g "$(slurp)" - | satty --filename -']]
+local sscreenshot = [[zsh -c "GSK_RENDERER=nglimages grim -g '$(slurp)' - | satty --filename -"]]
 
 hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("~/.config/hypr/scripts/wallpaper_selector_pv.sh"))
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
 hl.bind(mainMod .. " + D", hl.dsp.exec_cmd('zsh -i -c "fuckingdiscord"'))
+
+hl.bind(mainMod .. " + SHIFT + O", hl.dsp.exec_cmd("fcitx5 -d --replace &"))
 
 hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 hl.bind(mainMod .. " + F4", hl.dsp.exit())
