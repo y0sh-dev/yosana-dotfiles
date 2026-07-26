@@ -27,7 +27,7 @@ generate_eww_output() {
             CLASS_NAME="displayed"
             ICON=""
         fi
-        OUTPUT_EWw+=" (eventbox :onclick \"hyprctl dispatch workspace $i\" :cursor \"pointer\" :class \"ws-$CLASS_NAME\" (label :text \"$ICON \"))"
+        OUTPUT_EWw+=" (eventbox :onclick \"hyprctl dispatch 'hl.dsp.focus({ workspace = $i })'\" :cursor \"pointer\" :class \"ws-$CLASS_NAME\" (label :text \"$ICON \"))"
     done
 
     OUTPUT_EWw+=")"
