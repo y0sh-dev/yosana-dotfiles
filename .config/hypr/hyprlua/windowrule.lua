@@ -127,6 +127,8 @@ hl.window_rule({
 hl.window_rule({
     match   = { class = "^(thunar|Thunar)$" },
     opacity = "0.8 0.8", -- active inactive
+    float   = true,
+    size    = { 1200, 850 },
 })
 
 -- Vivaldi: Always keep fully opaque
