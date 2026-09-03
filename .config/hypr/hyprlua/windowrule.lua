@@ -178,6 +178,12 @@ hl.window_rule({
     fullscreen = true,
 })
 
+hl.window_rule({
+    name = "Steam Proton",
+    match = { class = "^(steam_proton)(.*)$" },
+    fullscreen = true,
+})
+
 -- War Thunder: Processing optimization
 hl.window_rule({
     match = { class = "^(War Thunder)(.*)$" },
