@@ -19,6 +19,7 @@ hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("~/.config/hypr/scripts/wallpaper_selector_pv.sh"))
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
 hl.bind(mainMod .. " + D", hl.dsp.exec_cmd('zsh -i -c "fuckingdiscord"'))
+hl.bind(mainMod .. " + A", hl.dsp.exec_cmd('zsh -i -c "hayase-ani"'))
 
 hl.bind(mainMod .. " + SHIFT + O", hl.dsp.exec_cmd("y4p daemon"))
 
@@ -29,7 +30,7 @@ hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit")) -- dwindle
-hl.bind(mainMod .. " + CTRL + V", hl.dsp.exec_cmd("y1-clip-gui"))
+hl.bind(mainMod .. " + CTRL + V", hl.dsp.exec_cmd("y4p-rofi"))
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock"))
 
 -- Move focus with mainMod + arrow keys
