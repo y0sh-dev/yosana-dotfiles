@@ -42,7 +42,7 @@
                   :valign "center"
                   (eventbox :class "powerbutton shutdown"
                             :cursor "pointer"
-                            :onclick "y4-clipboard wipe -f && systemctl poweroff"
+                            :onclick "y4p wipe -f && systemctl poweroff"
                             ;; :tooltip "Shutdown"
                             (box :class "pwbutton" (label :text " "))
                   )
@@ -67,7 +67,7 @@
                   :valign "center"
                   (eventbox :class "powerbutton reboot"
                             :cursor "pointer"
-                            :onclick "y4-clipboard wipe -f && systemctl reboot"
+                            :onclick "y4p wipe -f && systemctl reboot"
                             ;; :tooltip "Reboot"
                             (box :class "pwbutton" (label :text " "))
                   )
