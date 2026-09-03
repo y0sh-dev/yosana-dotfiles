@@ -24,7 +24,7 @@ background {
 image {
   monitor=DP-1
   halign=center
-  path=/home/yukkkk1/Pictures/icons/6590bbc6c5aac2c8dad24d2d75f7a476.png
+  path=/home/yukkkk1/Pictures/icons/nano_ai_2d_download_2.png
   position=0, 50
   valign=center
 }
