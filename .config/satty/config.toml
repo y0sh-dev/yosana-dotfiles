@@ -1,5 +1,5 @@
 [general]
 early-exit = true
 
-copy-command = "y4-clipboard store image/png"
+copy-command = "y4p store image/png"
 output-filename = "~/Pictures/screenshots/screenshot-%Y%m%d%H%M%S.png"
