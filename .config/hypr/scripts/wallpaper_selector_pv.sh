@@ -2,7 +2,7 @@
 
 WALLPAPER_DIR="$HOME/.config/hypr/wallpaper"
 
-find "$WALLPAPER_DIR" -type f \( -iname "*.jpg" -o -iname "*.png" \) | while read imageFile; do
+find "$WALLPAPER_DIR" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) | while read imageFile; do
   echo -en "$(basename "$imageFile")\0icon\x1fthumbnail://$imageFile\n"
 done | rofi -dmenu -i -show-icons -config ~/.config/rofi/config.rasi >/tmp/selected_wallpaper_name.txt
 
