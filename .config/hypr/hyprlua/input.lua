@@ -43,11 +43,11 @@ hl.config({
         enable_hyprcursor = true,
 
         -- Rendering and performance profiles
-        no_hardware_cursors = 1,
+        no_hardware_cursors = 2,
         use_cpu_buffer = 0,
 
         -- Stutter prevention for Variable Refresh Rate (VRR)
-        no_break_fs_vrr = 2,
+        no_break_fs_vrr = 1,
         min_refresh_rate = 60,
 
         -- Cursor movement and visibility control
