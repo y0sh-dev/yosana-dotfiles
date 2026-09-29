@@ -29,7 +29,7 @@ hl.config({
         layers_hog_keyboard_focus       = true,
 
         -- Monitor control and power management
-        vrr                             = 0,
+        vrr                             = 3,
         mouse_move_enables_dpms         = false,
         key_press_enables_dpms          = true,
 
