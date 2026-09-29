@@ -18,7 +18,7 @@ local sscreenshot = [[zsh -c "GSK_RENDERER=nglimages grim -g '$(slurp)' - | satt
 hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("~/.config/hypr/scripts/wallpaper_selector_pv.sh"))
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
-hl.bind(mainMod .. " + D", hl.dsp.exec_cmd('zsh -i -c "fuckingdiscord"'))
+hl.bind(mainMod .. " + D", hl.dsp.exec_cmd('zsh -i -c "fuckingvesktop"'))
 hl.bind(mainMod .. " + A", hl.dsp.exec_cmd('zsh -i -c "hayase-ani"'))
 
 hl.bind(mainMod .. " + SHIFT + O", hl.dsp.exec_cmd("y4p daemon"))
