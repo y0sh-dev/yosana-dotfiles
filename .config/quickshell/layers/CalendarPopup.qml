@@ -17,8 +17,7 @@ PanelWindow {
 
     WlrLayershell.layer: WlrLayershell.Overlay
     
-    // 修正ポイント: horizontalCenter を削除
-    // top だけを true にし、left/right を指定しないことで中央配置になります
+    // Anchored at top only; omitting left/right enables natural center positioning
     anchors {
         top: true
     }

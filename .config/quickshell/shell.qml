@@ -14,18 +14,13 @@ ShellRoot {
         occupiedWs: hyprlandLogic.occupiedWs
         
         timeText: timeService.shortTime
-        onClockClicked: calendarPopup.isOpen = !calendarPopup.isOpen
-        onVolumeClicked: volumePopup.isOpen = !volumePopup.isOpen
+        onClockClicked: {
+            console.log("Clock clicked: center anchor trigger")
+        }
+        onNetworkClicked: {
+            console.log("Network clicked: control panel trigger")
+        }
         onPowerClicked: powerMenu.isOpen = !powerMenu.isOpen
-    }
-
-    CalendarPopup {
-        id: calendarPopup
-        dateText: timeService.fullDate
-    }
-
-    VolumePopup {
-        id: volumePopup
     }
 
     PowerMenu {

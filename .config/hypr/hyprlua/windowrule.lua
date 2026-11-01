@@ -1,9 +1,68 @@
--- ##############################
--- ### WINDOWS AND WORKSPACES ###
--- ##############################
-
--- https://wiki.hyprland.org/Configuring/Window-Rules/
-
+-- #############################################################################
+-- ### HYPRLAND CONFIGURATION: WINDOW & LAYER RULES (HYPRLUA SPECIFICATION) ###
+-- #############################################################################
+-- Official Documentation:
+-- - Window Rules: https://wiki.hyprland.org/Configuring/Window-Rules/
+-- - Lua Configuration: https://wiki.hyprland.org/Configuring/Lua/
+--
+-- =============================================================================
+-- [1] WINDOW RULES SYNTAX: hl.window_rule({ ... })
+-- Applies to normal client applications (Toplevel windows: browsers, editors, etc.)
+--
+-- Syntax & Common Properties:
+--   hl.window_rule({
+--       name = "optional-unique-rule-name",
+--       match = {
+--           class            = "^(regex)$",  -- Window class (check via `hyprctl clients`)
+--           title            = "^(regex)$",  -- Window title
+--           initial_class    = "^(regex)$",  -- Initial class upon application launch
+--           initial_title    = "^(regex)$",  -- Initial title upon application launch
+--           float            = true/false,   -- Matches only floating / tiled windows
+--           fullscreen       = true/false,   -- Matches only fullscreen windows
+--           xwayland         = true/false,   -- Matches XWayland vs native Wayland windows
+--           pin              = true/false,   -- Matches pinned windows
+--           workspace        = "1" / "name", -- Matches windows on target workspace
+--       },
+--       -- Effects:
+--       float             = true,            -- Float the window
+--       center            = true,            -- Center on screen
+--       size              = "width height",  -- e.g. "900 600" or { 1200, 850 }
+--       move              = "x y",           -- e.g. "73% 72%" or "100 100"
+--       opacity           = "active [inactive]", -- e.g. "0.8 0.8"
+--       opaque            = true,            -- Force 100% opacity
+--       no_blur           = true,            -- Disable blur behind this window
+--       no_shadow         = true,            -- Disable shadow
+--       no_anim           = true,            -- Disable animations
+--       no_focus          = true,            -- Prevent stealing focus
+--       no_initial_focus  = true,            -- Don't focus on initial map
+--       suppress_event    = "maximize",      -- Suppress specific events (e.g. maximize)
+--       pin               = true,            -- Show on all workspaces
+--       keep_aspect_ratio = true,
+--   })
+--
+-- =============================================================================
+-- [2] LAYER RULES SYNTAX: hl.layer_rule({ ... })
+-- Applies to Wayland Layer Shell surfaces (TopBar, panels, notifications, modals, etc.)
+-- Inspect active layers using: `hyprctl layers`
+--
+-- Syntax & Common Properties:
+--   hl.layer_rule({
+--       name = "optional-unique-layer-rule-name",
+--       match = {
+--           namespace = "^(regex)$", -- Layer namespace from `hyprctl layers`
+--       },
+--       -- Effects:
+--       blur         = true/false, -- Enable background blur (uses size/passes in appearance.lua)
+--       ignore_alpha = float,      -- [0.0 - 1.0] Pixels with alpha <= threshold are NOT blurred.
+--                                  --   • Status bars & notifications: 0.5 ~ 0.79 (prevents fuzzy edges & shadows)
+--                                  --   • Fullscreen overlays / modals: 0.0 ~ 0.2 (allows semi-transparent backdrop blur)
+--       xray         = true/false, -- true: only blurs wallpaper behind; false: blurs all windows behind
+--       no_anim      = true/false, -- Disable animations for this layer
+--       animation    = "style",    -- Specific animation style
+--       dim_around   = true/false, -- Compositor-level darkening behind the layer
+--       order        = int,        -- Stacking order relative to other layer surfaces
+--   })
+-- #############################################################################
 
 -----------------------
 --- SYSTEM / FIXES   ---
@@ -200,22 +259,45 @@ hl.window_rule({
 --- LAYER RULES      ---
 ------------------------
 
--- Batch Apply Background Blur
+-- 1. Quickshell PowerMenu (Full-screen overlay blur)
+-- Backdrop dim is opacity 0.38; ignore_alpha 0.2 ensures the entire screen is blurred smoothly
 hl.layer_rule({
-    match        = { namespace = "eww-powerwd|dunst|notifications|logout_dialog" },
+    name         = "quickshell-powermenu-blur",
+    match        = { namespace = "^(powermenu)$" },
+    blur         = true,
+    ignore_alpha = 0.2,
+    xray         = false,
+})
+
+-- 2. Quickshell TopBar Islands Blur (Floating bar pill blur)
+-- ignore_alpha 0.5 prevents transparent padding/gaps between islands from blurring
+hl.layer_rule({
+    name         = "quickshell-topbar-blur",
+    match        = { namespace = "^(quickshell)$" },
     blur         = true,
     ignore_alpha = 0.5,
 })
 
--- Disable animation for a specific layer
+ -- 3. EWW PowerMenuenu (Full-screen overlay blur)
 hl.layer_rule({
-    match   = { namespace = "selection|hyprpicker|indicator.*" },
-    no_anim = true,
+    name         = "eww-powermenu-blur",
+    match        = { namespace = "^(eww-powerwd)$" },
+    blur         = true,
+    ignore_alpha = 0.2,
 })
 
--- X-ray effect on a layer
+-- 4. Notifications & Legacy Eww Panels
 hl.layer_rule({
-    match = { namespace = ".*" },
-    xray  = true,
+    name         = "notifications-and-dialogs-blur",
+    match        = { namespace = "^(dunst|notifications|logout_dialog)$" },
+    blur         = true,
+    ignore_alpha = 0.5,
+})
+
+-- 5. Fast UI Tools (Disable animations for instant response)
+hl.layer_rule({
+    name    = "no-anim-selectors",
+    match   = { namespace = "^(selection|hyprpicker|indicator.*)$" },
+    no_anim = true,
 })
 

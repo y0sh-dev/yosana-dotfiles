@@ -4,12 +4,17 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
 import Quickshell.Hyprland
+import "../services"
 
 PanelWindow {
     id: powerMenuRoot
     property bool isOpen: false
+    screen: Quickshell.screens[0]
 
-    WlrLayershell.layer: WlrLayershell.Overlay
+    WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.namespace: "powermenu"
+    WlrLayershell.exclusiveZone: -1
+    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
     anchors {
         top: true
@@ -21,12 +26,19 @@ PanelWindow {
     color: "transparent"
     visible: isOpen || bgDim.opacity > 0
 
-    // 背景暗転
+    // Dismiss modal on Escape key
+    Shortcut {
+        sequence: "Escape"
+        enabled: powerMenuRoot.isOpen
+        onActivated: powerMenuRoot.isOpen = false
+    }
+
+    // Backdrop dimming (semi-transparent for Hyprland blur)
     Rectangle {
         id: bgDim
         anchors.fill: parent
         color: "#000000"
-        opacity: powerMenuRoot.isOpen ? 0.65 : 0
+        opacity: powerMenuRoot.isOpen ? 0.38 : 0
         Behavior on opacity { NumberAnimation { duration: 200 } }
 
         MouseArea {
@@ -35,65 +47,72 @@ PanelWindow {
         }
     }
 
-    // 中央モーダル
+    // Central modal card (frosted glass look)
     Rectangle {
         id: modal
         anchors.centerIn: parent
-        width: 380
-        height: 250
-        radius: 16
-        color: "#1a1b26"
-        border.color: "#333333"
+        width: 520
+        height: 380
+        radius: 24
+        color: Qt.rgba(Theme.bg.r, Theme.bg.g, Theme.bg.b, 0.78)
+        border.color: Theme.border
         border.width: 1
 
-        scale: powerMenuRoot.isOpen ? 1.0 : 0.9
+        scale: powerMenuRoot.isOpen ? 1.0 : 0.92
         opacity: powerMenuRoot.isOpen ? 1.0 : 0.0
         Behavior on scale { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
         Behavior on opacity { NumberAnimation { duration: 180 } }
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 24
-            spacing: 20
+            anchors.margins: 28
+            spacing: 24
 
             Text {
                 Layout.alignment: Qt.AlignHCenter
                 text: "Power Options"
-                color: "#7aa2f7"
-                font.pixelSize: 18
+                color: Theme.accent
+                font.pixelSize: 22
                 font.bold: true
-                font.family: "FiraCode Nerd Font"
+                font.family: Theme.fontFamily
             }
 
             GridLayout {
                 columns: 3
-                rowSpacing: 14
-                columnSpacing: 14
+                rowSpacing: 16
+                columnSpacing: 16
                 Layout.alignment: Qt.AlignHCenter
 
                 // Shutdown
                 Rectangle {
-                    width: 90
-                    height: 50
-                    radius: 8
-                    color: btnShutdown.containsMouse ? "#f7768e" : "#24283b"
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    width: 140
+                    height: 95
+                    radius: 16
+                    color: btnShutdown.containsMouse ? Theme.urgent : Theme.surface
+                    border.color: btnShutdown.containsMouse ? Theme.urgent : Theme.border
+                    border.width: 1
+                    scale: btnShutdown.pressed ? 0.93 : (btnShutdown.containsMouse ? 1.04 : 1.0)
+                    Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
+                    Behavior on color { ColorAnimation { duration: 150 } }
 
                     ColumnLayout {
                         anchors.centerIn: parent
-                        spacing: 2
+                        spacing: 6
                         Text {
                             Layout.alignment: Qt.AlignHCenter
                             text: ""
-                            color: btnShutdown.containsMouse ? "#1a1b26" : "#f7768e"
-                            font.pixelSize: 18
-                            font.family: "FiraCode Nerd Font"
+                            color: btnShutdown.containsMouse ? Theme.bg : Theme.urgent
+                            font.pixelSize: 32
+                            font.family: Theme.fontFamily
+                            Behavior on color { ColorAnimation { duration: 150 } }
                         }
                         Text {
                             Layout.alignment: Qt.AlignHCenter
                             text: "Power Off"
-                            color: btnShutdown.containsMouse ? "#1a1b26" : "#c0caf5"
-                            font.pixelSize: 11
+                            color: btnShutdown.containsMouse ? Theme.bg : Theme.fg
+                            font.pixelSize: 14
+                            font.bold: true
+                            Behavior on color { ColorAnimation { duration: 150 } }
                         }
                     }
 
@@ -111,27 +130,34 @@ PanelWindow {
 
                 // Reboot
                 Rectangle {
-                    width: 90
-                    height: 50
-                    radius: 8
-                    color: btnReboot.containsMouse ? "#e0af68" : "#24283b"
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    width: 140
+                    height: 95
+                    radius: 16
+                    color: btnReboot.containsMouse ? Theme.accent : Theme.surface
+                    border.color: btnReboot.containsMouse ? Theme.accent : Theme.border
+                    border.width: 1
+                    scale: btnReboot.pressed ? 0.93 : (btnReboot.containsMouse ? 1.04 : 1.0)
+                    Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
+                    Behavior on color { ColorAnimation { duration: 150 } }
 
                     ColumnLayout {
                         anchors.centerIn: parent
-                        spacing: 2
+                        spacing: 6
                         Text {
                             Layout.alignment: Qt.AlignHCenter
                             text: ""
-                            color: btnReboot.containsMouse ? "#1a1b26" : "#e0af68"
-                            font.pixelSize: 18
-                            font.family: "FiraCode Nerd Font"
+                            color: btnReboot.containsMouse ? Theme.bg : Theme.accent
+                            font.pixelSize: 32
+                            font.family: Theme.fontFamily
+                            Behavior on color { ColorAnimation { duration: 150 } }
                         }
                         Text {
                             Layout.alignment: Qt.AlignHCenter
                             text: "Reboot"
-                            color: btnReboot.containsMouse ? "#1a1b26" : "#c0caf5"
-                            font.pixelSize: 11
+                            color: btnReboot.containsMouse ? Theme.bg : Theme.fg
+                            font.pixelSize: 14
+                            font.bold: true
+                            Behavior on color { ColorAnimation { duration: 150 } }
                         }
                     }
 
@@ -149,27 +175,34 @@ PanelWindow {
 
                 // Suspend
                 Rectangle {
-                    width: 90
-                    height: 50
-                    radius: 8
-                    color: btnSuspend.containsMouse ? "#7aa2f7" : "#24283b"
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    width: 140
+                    height: 95
+                    radius: 16
+                    color: btnSuspend.containsMouse ? Theme.accent : Theme.surface
+                    border.color: btnSuspend.containsMouse ? Theme.accent : Theme.border
+                    border.width: 1
+                    scale: btnSuspend.pressed ? 0.93 : (btnSuspend.containsMouse ? 1.04 : 1.0)
+                    Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
+                    Behavior on color { ColorAnimation { duration: 150 } }
 
                     ColumnLayout {
                         anchors.centerIn: parent
-                        spacing: 2
+                        spacing: 6
                         Text {
                             Layout.alignment: Qt.AlignHCenter
                             text: "󰒲"
-                            color: btnSuspend.containsMouse ? "#1a1b26" : "#7aa2f7"
-                            font.pixelSize: 18
-                            font.family: "FiraCode Nerd Font"
+                            color: btnSuspend.containsMouse ? Theme.bg : Theme.accent
+                            font.pixelSize: 32
+                            font.family: Theme.fontFamily
+                            Behavior on color { ColorAnimation { duration: 150 } }
                         }
                         Text {
                             Layout.alignment: Qt.AlignHCenter
                             text: "Sleep"
-                            color: btnSuspend.containsMouse ? "#1a1b26" : "#c0caf5"
-                            font.pixelSize: 11
+                            color: btnSuspend.containsMouse ? Theme.bg : Theme.fg
+                            font.pixelSize: 14
+                            font.bold: true
+                            Behavior on color { ColorAnimation { duration: 150 } }
                         }
                     }
 
@@ -187,27 +220,34 @@ PanelWindow {
 
                 // Lock
                 Rectangle {
-                    width: 90
-                    height: 50
-                    radius: 8
-                    color: btnLock.containsMouse ? "#bb9af7" : "#24283b"
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    width: 140
+                    height: 95
+                    radius: 16
+                    color: btnLock.containsMouse ? Theme.accent : Theme.surface
+                    border.color: btnLock.containsMouse ? Theme.accent : Theme.border
+                    border.width: 1
+                    scale: btnLock.pressed ? 0.93 : (btnLock.containsMouse ? 1.04 : 1.0)
+                    Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
+                    Behavior on color { ColorAnimation { duration: 150 } }
 
                     ColumnLayout {
                         anchors.centerIn: parent
-                        spacing: 2
+                        spacing: 6
                         Text {
                             Layout.alignment: Qt.AlignHCenter
                             text: ""
-                            color: btnLock.containsMouse ? "#1a1b26" : "#bb9af7"
-                            font.pixelSize: 18
-                            font.family: "FiraCode Nerd Font"
+                            color: btnLock.containsMouse ? Theme.bg : Theme.accent
+                            font.pixelSize: 32
+                            font.family: Theme.fontFamily
+                            Behavior on color { ColorAnimation { duration: 150 } }
                         }
                         Text {
                             Layout.alignment: Qt.AlignHCenter
                             text: "Lock"
-                            color: btnLock.containsMouse ? "#1a1b26" : "#c0caf5"
-                            font.pixelSize: 11
+                            color: btnLock.containsMouse ? Theme.bg : Theme.fg
+                            font.pixelSize: 14
+                            font.bold: true
+                            Behavior on color { ColorAnimation { duration: 150 } }
                         }
                     }
 
@@ -225,27 +265,34 @@ PanelWindow {
 
                 // Logout
                 Rectangle {
-                    width: 90
-                    height: 50
-                    radius: 8
-                    color: btnLogout.containsMouse ? "#ff9e64" : "#24283b"
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    width: 140
+                    height: 95
+                    radius: 16
+                    color: btnLogout.containsMouse ? Theme.accent : Theme.surface
+                    border.color: btnLogout.containsMouse ? Theme.accent : Theme.border
+                    border.width: 1
+                    scale: btnLogout.pressed ? 0.93 : (btnLogout.containsMouse ? 1.04 : 1.0)
+                    Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
+                    Behavior on color { ColorAnimation { duration: 150 } }
 
                     ColumnLayout {
                         anchors.centerIn: parent
-                        spacing: 2
+                        spacing: 6
                         Text {
                             Layout.alignment: Qt.AlignHCenter
                             text: "󰍃"
-                            color: btnLogout.containsMouse ? "#1a1b26" : "#ff9e64"
-                            font.pixelSize: 18
-                            font.family: "FiraCode Nerd Font"
+                            color: btnLogout.containsMouse ? Theme.bg : Theme.accent
+                            font.pixelSize: 32
+                            font.family: Theme.fontFamily
+                            Behavior on color { ColorAnimation { duration: 150 } }
                         }
                         Text {
                             Layout.alignment: Qt.AlignHCenter
                             text: "Logout"
-                            color: btnLogout.containsMouse ? "#1a1b26" : "#c0caf5"
-                            font.pixelSize: 11
+                            color: btnLogout.containsMouse ? Theme.bg : Theme.fg
+                            font.pixelSize: 14
+                            font.bold: true
+                            Behavior on color { ColorAnimation { duration: 150 } }
                         }
                     }
 
@@ -263,27 +310,34 @@ PanelWindow {
 
                 // Hibernate
                 Rectangle {
-                    width: 90
-                    height: 50
-                    radius: 8
-                    color: btnHibernate.containsMouse ? "#7dcfff" : "#24283b"
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    width: 140
+                    height: 95
+                    radius: 16
+                    color: btnHibernate.containsMouse ? Theme.accent : Theme.surface
+                    border.color: btnHibernate.containsMouse ? Theme.accent : Theme.border
+                    border.width: 1
+                    scale: btnHibernate.pressed ? 0.93 : (btnHibernate.containsMouse ? 1.04 : 1.0)
+                    Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
+                    Behavior on color { ColorAnimation { duration: 150 } }
 
                     ColumnLayout {
                         anchors.centerIn: parent
-                        spacing: 2
+                        spacing: 6
                         Text {
                             Layout.alignment: Qt.AlignHCenter
                             text: ""
-                            color: btnHibernate.containsMouse ? "#1a1b26" : "#7dcfff"
-                            font.pixelSize: 18
-                            font.family: "FiraCode Nerd Font"
+                            color: btnHibernate.containsMouse ? Theme.bg : Theme.accent
+                            font.pixelSize: 32
+                            font.family: Theme.fontFamily
+                            Behavior on color { ColorAnimation { duration: 150 } }
                         }
                         Text {
                             Layout.alignment: Qt.AlignHCenter
                             text: "Hibernate"
-                            color: btnHibernate.containsMouse ? "#1a1b26" : "#c0caf5"
-                            font.pixelSize: 11
+                            color: btnHibernate.containsMouse ? Theme.bg : Theme.fg
+                            font.pixelSize: 14
+                            font.bold: true
+                            Behavior on color { ColorAnimation { duration: 150 } }
                         }
                     }
 
@@ -302,18 +356,22 @@ PanelWindow {
 
             Rectangle {
                 Layout.alignment: Qt.AlignHCenter
-                width: 100
-                height: 28
-                radius: 6
-                color: btnCancel.containsMouse ? "#3b4261" : "transparent"
-                border.color: "#565f89"
+                width: 150
+                height: 38
+                radius: 12
+                color: btnCancel.containsMouse ? Theme.surfaceHover : "transparent"
+                border.color: Theme.border
                 border.width: 1
+                scale: btnCancel.pressed ? 0.94 : (btnCancel.containsMouse ? 1.03 : 1.0)
+                Behavior on scale { NumberAnimation { duration: 120 } }
+                Behavior on color { ColorAnimation { duration: 150 } }
 
                 Text {
                     anchors.centerIn: parent
                     text: "Cancel"
-                    color: "#a9b1d6"
-                    font.pixelSize: 12
+                    color: Theme.subtext
+                    font.pixelSize: 14
+                    font.bold: true
                 }
 
                 MouseArea {

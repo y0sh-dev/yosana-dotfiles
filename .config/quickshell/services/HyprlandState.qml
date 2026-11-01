@@ -2,7 +2,7 @@ import QtQuick
 import Quickshell.Hyprland
 
 Item {
-    // 組み込みの Hyprland オブジェクトからデータを抽出
+    // Extract state from built-in Hyprland singleton
     readonly property int focusedWs: Hyprland.focusedMonitor ? Hyprland.focusedMonitor.activeWorkspace.id : 0
     
     readonly property var displayedWs: {
@@ -18,7 +18,7 @@ Item {
         var ids = [];
         for (var i = 0; i < Hyprland.workspaces.values.length; i++) {
             var ws = Hyprland.workspaces.values[i];
-            // ウィンドウ（toplevels）が存在するワークスペースを記録
+            // Track workspaces that contain open windows (toplevels)
             if (ws.id > 0 && ws.toplevels.values.length > 0) ids.push(ws.id);
         }
         return ids;

@@ -1,17 +1,12 @@
 import QtQuick
+import "../services"
 
 Text {
     property string displayTime: ""
-    signal clicked()
 
     text: displayTime
-    color: "#ffffff"
-    font.pixelSize: 16
-    font.family: "FiraCode Nerd Font"
-
-    MouseArea {
-        anchors.fill: parent
-        cursorShape: Qt.PointingHandCursor
-        onClicked: parent.clicked()
-    }
+    color: Theme.fg
+    font.pixelSize: Theme.clockFontSize
+    font.bold: true
+    font.family: Theme.fontFamily
 }
