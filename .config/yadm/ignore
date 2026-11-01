@@ -1,0 +1,37 @@
+# Security & Sensitive Boundaries
+.ssh/
+.gnupg/
+.git-credentials
+*.pem
+*.key
+*.token
+*.env
+*.bak
+.google_authenticator*
+
+# Personal & User Data Directories
+Documents/
+Downloads/
+Downloaded/
+Pictures/
+Desktop/
+デスクトップ/
+Games/
+Floorp/
+
+# Application Caches & States
+.cache/
+.local/
+.mozilla/
+.floorp/
+.steam/
+.minecraft/
+.wine/
+.var/
+.nv/
+.pki/
+
+# Temporary & Log Files
+*.log
+nohup.out
+*.zwc
