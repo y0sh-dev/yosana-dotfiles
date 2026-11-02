@@ -37,11 +37,12 @@ PanelWindow {
     anchors {
         top: true
     }
-    margins.top: 58 // 48 (barHeight) + 4 (topMargin) + 6 (gap)
+    margins.top: Math.round(58 * Theme.uiScale) // 48 (barHeight) + 4 (topMargin) + 6 (gap)
 
-    // Scaled for WQHD (2560x1440): Width 860px, Height 490px
-    implicitWidth: 860
-    implicitHeight: 490
+    // Scaled adaptively via Theme.uiScale: WQHD baseline 860px x 490px
+    // 1080p: ~645px x 368px, 1440p: 860px x 490px, 4K: 1290px x 735px
+    implicitWidth: Math.round(860 * Theme.uiScale)
+    implicitHeight: Math.round(490 * Theme.uiScale)
     color: "transparent"
 
     visible: isOpen || contentMonolith.opacity > 0
@@ -50,9 +51,9 @@ PanelWindow {
     Rectangle {
         id: contentMonolith
         anchors.fill: parent
-        // Deep obsidian black with gentle translucency (84%) allowing Hyprland blur to shine through
+        // Deep obsidian black with gentle translucency (90%) allowing Hyprland blur to shine through
         color: Qt.rgba(0, 0, 0, 0.90)
-        radius: Theme.radiusIsland // 20px
+        radius: Math.round(Theme.radiusIsland * Theme.uiScale) // ~20px
         border.width: 0 // Pure matte aesthetic: zero harsh border lines
 
         opacity: calendarRoot.isOpen ? 1.0 : 0.0
@@ -70,8 +71,8 @@ PanelWindow {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            anchors.topMargin: 20
-            anchors.bottomMargin: 20
+            anchors.topMargin: Math.round(20 * Theme.uiScale)
+            anchors.bottomMargin: Math.round(20 * Theme.uiScale)
             width: 1
             color: Theme.border
             opacity: 0.25 // Subtle matte separation
@@ -86,10 +87,10 @@ PanelWindow {
             anchors.right: centerAxis.left
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            anchors.leftMargin: 24
-            anchors.rightMargin: 24
-            anchors.topMargin: 20
-            anchors.bottomMargin: 20
+            anchors.leftMargin: Math.round(24 * Theme.uiScale)
+            anchors.rightMargin: Math.round(24 * Theme.uiScale)
+            anchors.topMargin: Math.round(20 * Theme.uiScale)
+            anchors.bottomMargin: Math.round(20 * Theme.uiScale)
 
             // ================================================================
             // VIEW A: Main Info View (Clock + Weather)
@@ -111,13 +112,13 @@ PanelWindow {
                     // Full Seconds Clock: hh:mm (54px fgSoft) + :ss (36px subtextDim) + plain GMT+9 (16px subtextDim)
                     Row {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        spacing: 8
+                        spacing: Math.round(8 * Theme.uiScale)
 
                         // Hours and minutes (54px eye-friendly soft off-white)
                         Text {
                             text: Qt.formatDateTime(calendarRoot.currentTime, "hh:mm")
                             color: Theme.fgSoft
-                            font.pixelSize: 54
+                            font.pixelSize: Math.round(54 * Theme.uiScale)
                             font.bold: true
                             font.family: Theme.fontFamily
                         }
@@ -126,7 +127,7 @@ PanelWindow {
                         Text {
                             text: Qt.formatDateTime(calendarRoot.currentTime, ":ss")
                             color: Theme.subtextDim
-                            font.pixelSize: 36
+                            font.pixelSize: Math.round(36 * Theme.uiScale)
                             font.bold: true
                             font.family: Theme.fontFamily
                             anchors.baseline: parent.children[0].baseline
@@ -136,7 +137,7 @@ PanelWindow {
                         Text {
                             text: "GMT+9"
                             color: Theme.subtextDim
-                            font.pixelSize: 16
+                            font.pixelSize: Math.round(16 * Theme.uiScale)
                             font.bold: true
                             font.family: Theme.fontFamily
                             anchors.baseline: parent.children[0].baseline
@@ -146,13 +147,13 @@ PanelWindow {
                     // Weekday & Date (Weekday fgSoft matching hh:mm; Date subtextDim matching :ss & GMT)
                     Row {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        spacing: 8
+                        spacing: Math.round(8 * Theme.uiScale)
 
                         // Weekday (22px bold fgSoft: exactly same brightness as hh:mm)
                         Text {
                             text: Qt.formatDateTime(calendarRoot.currentTime, "dddd")
                             color: Theme.fgSoft
-                            font.pixelSize: 22
+                            font.pixelSize: Math.round(22 * Theme.uiScale)
                             font.bold: true
                             font.family: Theme.fontFamily
                             anchors.verticalCenter: parent.verticalCenter
@@ -161,7 +162,7 @@ PanelWindow {
                         Text {
                             text: "•"
                             color: Theme.subtextDim
-                            font.pixelSize: 16
+                            font.pixelSize: Math.round(16 * Theme.uiScale)
                             anchors.verticalCenter: parent.verticalCenter
                         }
 
@@ -169,7 +170,7 @@ PanelWindow {
                         Text {
                             text: Qt.formatDateTime(calendarRoot.currentTime, "MMMM").toLowerCase()
                             color: Theme.subtextDim
-                            font.pixelSize: 20
+                            font.pixelSize: Math.round(20 * Theme.uiScale)
                             font.bold: true
                             font.family: Theme.fontFamily
                             anchors.verticalCenter: parent.verticalCenter
@@ -179,7 +180,7 @@ PanelWindow {
                         Text {
                             text: Qt.formatDateTime(calendarRoot.currentTime, "d")
                             color: Theme.subtextDim
-                            font.pixelSize: 20
+                            font.pixelSize: Math.round(20 * Theme.uiScale)
                             font.bold: true
                             font.family: Theme.fontFamily
                             width: font.pixelSize * 1.3
@@ -191,7 +192,7 @@ PanelWindow {
                         Text {
                             text: ", " + Qt.formatDateTime(calendarRoot.currentTime, "yyyy")
                             color: Theme.subtextDim
-                            font.pixelSize: 20
+                            font.pixelSize: Math.round(20 * Theme.uiScale)
                             font.family: Theme.fontFamily
                             anchors.verticalCenter: parent.verticalCenter
                         }
@@ -824,14 +825,14 @@ PanelWindow {
             anchors.right: parent.right
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            anchors.margins: 20
+            anchors.margins: Math.round(20 * Theme.uiScale)
 
             // Solid Framed Enclosure Card for Calendar (Frameless pure matte card with gentle translucency)
             Rectangle {
                 anchors.fill: parent
                 color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.45)
                 border.width: 0
-                radius: 14
+                radius: Math.round(14 * Theme.uiScale)
 
                 // Mouse wheel navigation for smooth month switching
                 MouseArea {
@@ -858,20 +859,20 @@ PanelWindow {
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 14
-                    spacing: 10
+                    anchors.margins: Math.round(14 * Theme.uiScale)
+                    spacing: Math.round(10 * Theme.uiScale)
 
                     // 1. Navigation Header: Bi-split Capsule Navigation (◀ Month ▶ / ◀ Year ▶ / Reset)
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 8
+                        spacing: Math.round(8 * Theme.uiScale)
 
                         // ─── Bi-split Month Capsule ───
                         Rectangle {
                             id: monthCapsule
-                            implicitWidth: 186
-                            implicitHeight: 36
-                            radius: 18
+                            implicitWidth: Math.round(186 * Theme.uiScale)
+                            implicitHeight: Math.round(36 * Theme.uiScale)
+                            radius: Math.round(18 * Theme.uiScale)
                             color: "transparent"
                             border.color: Qt.rgba(1, 1, 1, 0.08)
                             border.width: 1
@@ -884,7 +885,7 @@ PanelWindow {
                                 anchors.bottom: parent.bottom
                                 anchors.right: monthDivider.left
                                 anchors.margins: 2
-                                radius: 16
+                                radius: Math.round(16 * Theme.uiScale)
                                 color: prevMonthArea.containsMouse ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18) : "transparent"
                                 Behavior on color { ColorAnimation { duration: 120 } }
                             }
@@ -904,7 +905,7 @@ PanelWindow {
                                 anchors.top: parent.top
                                 anchors.bottom: parent.bottom
                                 anchors.margins: 2
-                                radius: 16
+                                radius: Math.round(16 * Theme.uiScale)
                                 color: nextMonthArea.containsMouse ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18) : "transparent"
                                 Behavior on color { ColorAnimation { duration: 120 } }
                             }
@@ -912,12 +913,12 @@ PanelWindow {
                             // Content (Centered over the capsule)
                             Row {
                                 anchors.centerIn: parent
-                                spacing: 10
+                                spacing: Math.round(10 * Theme.uiScale)
 
                                 Text {
                                     text: "◀"
                                     color: prevMonthArea.containsMouse ? Theme.accent : Theme.subtextDim
-                                    font.pixelSize: 12
+                                    font.pixelSize: Math.round(12 * Theme.uiScale)
                                     anchors.verticalCenter: parent.verticalCenter
                                     Behavior on color { ColorAnimation { duration: 120 } }
                                 }
@@ -926,7 +927,7 @@ PanelWindow {
                                     readonly property var monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
                                     text: monthNames[calendarRoot.viewMonth]
                                     color: Theme.fgSoft
-                                    font.pixelSize: 14
+                                    font.pixelSize: Math.round(14 * Theme.uiScale)
                                     font.bold: true
                                     font.family: Theme.fontFamily
                                     anchors.verticalCenter: parent.verticalCenter
@@ -935,7 +936,7 @@ PanelWindow {
                                 Text {
                                     text: "▶"
                                     color: nextMonthArea.containsMouse ? Theme.accent : Theme.subtextDim
-                                    font.pixelSize: 12
+                                    font.pixelSize: Math.round(12 * Theme.uiScale)
                                     anchors.verticalCenter: parent.verticalCenter
                                     Behavior on color { ColorAnimation { duration: 120 } }
                                 }
@@ -983,9 +984,9 @@ PanelWindow {
                         // ─── Bi-split Year Capsule ───
                         Rectangle {
                             id: yearCapsule
-                            implicitWidth: 120
-                            implicitHeight: 36
-                            radius: 18
+                            implicitWidth: Math.round(120 * Theme.uiScale)
+                            implicitHeight: Math.round(36 * Theme.uiScale)
+                            radius: Math.round(18 * Theme.uiScale)
                             color: "transparent"
                             border.color: Qt.rgba(1, 1, 1, 0.08)
                             border.width: 1
@@ -998,7 +999,7 @@ PanelWindow {
                                 anchors.bottom: parent.bottom
                                 anchors.right: yearDivider.left
                                 anchors.margins: 2
-                                radius: 16
+                                radius: Math.round(16 * Theme.uiScale)
                                 color: prevYearArea.containsMouse ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18) : "transparent"
                                 Behavior on color { ColorAnimation { duration: 120 } }
                             }
@@ -1018,7 +1019,7 @@ PanelWindow {
                                 anchors.top: parent.top
                                 anchors.bottom: parent.bottom
                                 anchors.margins: 2
-                                radius: 16
+                                radius: Math.round(16 * Theme.uiScale)
                                 color: nextYearArea.containsMouse ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18) : "transparent"
                                 Behavior on color { ColorAnimation { duration: 120 } }
                             }
@@ -1026,12 +1027,12 @@ PanelWindow {
                             // Content (Centered over the capsule)
                             Row {
                                 anchors.centerIn: parent
-                                spacing: 8
+                                spacing: Math.round(8 * Theme.uiScale)
 
                                 Text {
                                     text: "◀"
                                     color: prevYearArea.containsMouse ? Theme.accent : Theme.subtextDim
-                                    font.pixelSize: 11
+                                    font.pixelSize: Math.round(11 * Theme.uiScale)
                                     anchors.verticalCenter: parent.verticalCenter
                                     Behavior on color { ColorAnimation { duration: 120 } }
                                 }
@@ -1039,7 +1040,7 @@ PanelWindow {
                                 Text {
                                     text: calendarRoot.viewYear.toString()
                                     color: Theme.fgSoft
-                                    font.pixelSize: 14
+                                    font.pixelSize: Math.round(14 * Theme.uiScale)
                                     font.bold: true
                                     font.family: Theme.fontFamily
                                     anchors.verticalCenter: parent.verticalCenter
@@ -1048,7 +1049,7 @@ PanelWindow {
                                 Text {
                                     text: "▶"
                                     color: nextYearArea.containsMouse ? Theme.accent : Theme.subtextDim
-                                    font.pixelSize: 11
+                                    font.pixelSize: Math.round(11 * Theme.uiScale)
                                     anchors.verticalCenter: parent.verticalCenter
                                     Behavior on color { ColorAnimation { duration: 120 } }
                                 }
@@ -1083,9 +1084,9 @@ PanelWindow {
 
                         // ─── Reset to Today Button ───
                         Rectangle {
-                            implicitWidth: 36
-                            implicitHeight: 36
-                            radius: 18
+                            implicitWidth: Math.round(36 * Theme.uiScale)
+                            implicitHeight: Math.round(36 * Theme.uiScale)
+                            radius: Math.round(18 * Theme.uiScale)
                             color: todayMouse.containsMouse ? Theme.surfaceHover : "transparent"
                             border.color: todayMouse.containsMouse ? Theme.accent : Qt.rgba(1, 1, 1, 0.08)
                             border.width: 1
@@ -1094,7 +1095,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 text: "󰃭"
                                 color: todayMouse.containsMouse ? Theme.accent : Theme.subtextDim
-                                font.pixelSize: 16
+                                font.pixelSize: Math.round(16 * Theme.uiScale)
                                 Behavior on color { ColorAnimation { duration: 120 } }
                             }
 
@@ -1114,7 +1115,7 @@ PanelWindow {
                     // 2. Weekday Header (Sun=Red, Mon-Fri=SubtextDim, Sat=Blue)
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 4
+                        spacing: Math.round(4 * Theme.uiScale)
 
                         Repeater {
                             model: [
@@ -1128,12 +1129,12 @@ PanelWindow {
                             ]
                             delegate: Item {
                                 Layout.fillWidth: true
-                                height: 26
+                                height: Math.round(26 * Theme.uiScale)
                                 Text {
                                     anchors.centerIn: parent
                                     text: modelData.name
                                     color: modelData.color
-                                    font.pixelSize: 12
+                                    font.pixelSize: Math.round(12 * Theme.uiScale)
                                     font.bold: true
                                     font.family: Theme.fontFamily
                                 }
@@ -1144,7 +1145,7 @@ PanelWindow {
                     // 3. Subtle Matte Divider Line between Header & Grid
                     Rectangle {
                         Layout.fillWidth: true
-                        height: 32
+                        height: Math.round(32 * Theme.uiScale)
                         color: Theme.border
                         opacity: 0.18
                     }
@@ -1152,15 +1153,15 @@ PanelWindow {
                     // 4. Days Grid (42 Cells: 7 cols x 6 rows) - Matte Tile Grid Architecture
                     GridLayout {
                         columns: 7
-                        rowSpacing: 4
-                        columnSpacing: 4
+                        rowSpacing: Math.round(4 * Theme.uiScale)
+                        columnSpacing: Math.round(4 * Theme.uiScale)
                         Layout.fillWidth: true
 
                         Repeater {
                             model: 42
                             delegate: Item {
                                 Layout.fillWidth: true
-                                implicitHeight: 38 // Square-proportioned tile (~48px x 46px), matching left weather height
+                                implicitHeight: Math.round(38 * Theme.uiScale)
 
                                 readonly property int firstDayOfWeek: new Date(calendarRoot.viewYear, calendarRoot.viewMonth, 1).getDay()
                                 readonly property int daysInCurrentMonth: new Date(calendarRoot.viewYear, calendarRoot.viewMonth + 1, 0).getDate()
@@ -1182,7 +1183,7 @@ PanelWindow {
                                 // Matte Tile Slot
                                 Rectangle {
                                     anchors.fill: parent
-                                    radius: 8
+                                    radius: Math.round(8 * Theme.uiScale)
 
                                     // Background: Today is accent, Hover is surfaceHover, default is transparent
                                     color: {
@@ -1213,7 +1214,7 @@ PanelWindow {
                                             if (index % 7 === 6) return Theme.colorSat; // Saturday Blue
                                             return Theme.fgSoft;
                                         }
-                                        font.pixelSize: 14
+                                        font.pixelSize: Math.round(14 * Theme.uiScale)
                                         font.bold: isToday
                                         font.family: Theme.fontFamily
                                     }
