@@ -26,6 +26,8 @@ QtObject {
     property color targetSurface: "#0e1117"
     property color targetBorder: "#252b38"
     property color targetUrgent: "#a05042"
+    property color targetSun: "#d9544d" // Red for Sunday (color9 / color1)
+    property color targetSat: "#5e81ac" // Blue for Saturday (color12 / color4)
 
     // Dip / Emergency Standby Colors (Dystopian Minimal Infrastructure)
     readonly property color dipFg: "#364152"
@@ -42,10 +44,14 @@ QtObject {
     readonly property color surfaceHover: isGridDip ? "#10141c" : Qt.tint(targetBg, Qt.rgba(1, 1, 1, 0.10))
 
     readonly property color fg: isGridDip ? dipFg : targetFg
+    readonly property color fgSoft: isGridDip ? dipFg : "#c2cbd6" // Gentle, eye-friendly soft off-white (prevents glare in dark rooms)
     readonly property color subtext: isGridDip ? dipSubtext : targetSubtext
+    readonly property color subtextDim: isGridDip ? dipSubtext : "#788796" // Calm uniform secondary tone
     readonly property color accent: isGridDip ? dipAccent : targetAccent
     readonly property color border: isGridDip ? dipBorder : targetBorder
     readonly property color urgent: isGridDip ? dipUrgent : targetUrgent
+    readonly property color colorSun: isGridDip ? dipUrgent : targetSun
+    readonly property color colorSat: isGridDip ? dipAccent : targetSat
 
     readonly property color wsActive: isGridDip ? dipAccent : targetAccent
     readonly property color wsDisplayed: isGridDip ? dipFg : targetFg
@@ -120,6 +126,8 @@ QtObject {
                 if (c.color4) theme.targetAccent = c.color4;
                 if (c.color8) theme.targetSubtext = c.color8;
                 theme.targetUrgent = c.color1 || c.color3 || "#a05042";
+                theme.targetSun = c.color9 || c.color1 || "#d9544d";
+                theme.targetSat = c.color12 || c.color4 || "#5e81ac";
             }
             console.log("Fresh wal colors applied via cat: wallpaper=" + (parsed.wallpaper || "") + " accent=" + theme.targetAccent);
         } catch (e) {
