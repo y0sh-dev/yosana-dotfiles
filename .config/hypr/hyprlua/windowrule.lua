@@ -286,12 +286,13 @@ hl.layer_rule({
     ignore_alpha = 0.2,
 })
 
--- 4. Notifications & Legacy Eww Panels
+-- 4. Notifications (SwayNC) & System Dialogs
 hl.layer_rule({
     name         = "notifications-and-dialogs-blur",
-    match        = { namespace = "^(dunst|notifications|logout_dialog)$" },
+    match        = { namespace = "^(swaync-control-center|swaync-notification-window|dunst|notifications|logout_dialog)$" },
     blur         = true,
-    ignore_alpha = 0.5,
+    ignore_alpha = 0.2,
+    xray         = false,
 })
 
 -- 5. Fast UI Tools (Disable animations for instant response)
