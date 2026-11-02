@@ -52,6 +52,8 @@ QtObject {
     readonly property color urgent: isGridDip ? dipUrgent : targetUrgent
     readonly property color colorSun: isGridDip ? dipUrgent : targetSun
     readonly property color colorSat: isGridDip ? dipAccent : targetSat
+    readonly property color tempHot: isGridDip ? dipUrgent : "#f07178" // Vivid coral-red clearly visible in dark room
+    readonly property color tempCold: isGridDip ? dipAccent : "#6cb6ff" // Crisp sky-blue clearly visible in dark room
 
     readonly property color wsActive: isGridDip ? dipAccent : targetAccent
     readonly property color wsDisplayed: isGridDip ? dipFg : targetFg
