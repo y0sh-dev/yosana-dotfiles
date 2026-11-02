@@ -26,7 +26,6 @@ hl.config({
         -- Mouse, keyboard, and layer behavior
         mouse_move_focuses_monitor      = true,
         always_follow_on_dnd            = true,
-        layers_hog_keyboard_focus       = true,
 
         -- Monitor control and power management
         vrr                             = 3,
@@ -41,6 +40,10 @@ hl.config({
         allow_session_lock_restore      = true,
         disable_autoreload              = false,
         disable_hyprland_guiutils_check = true,
+    },
+
+    layers = {
+        layers_hog_keyboard_focus       = true,
     },
 
     render = {
@@ -77,7 +80,7 @@ hl.config({
         -- Power saving and frame resource minimization
         vfr                  = true,
         damage_tracking      = 2,
-        invalidate_fp16      = 1,
+        invalidate_buffers      = 1,
 
         -- Scaling and pixel alignment
         disable_scale_checks = true,
