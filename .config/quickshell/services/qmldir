@@ -1,3 +1,4 @@
 singleton Theme 1.0 Theme.qml
+singleton WeatherService 1.0 WeatherService.qml
 HyprlandState 1.0 HyprlandState.qml
 TimeService 1.0 TimeService.qml

@@ -24,12 +24,24 @@ ShellRoot {
             console.log("Main Menu / Control Shortcut clicked")
         }
         onClockClicked: {
-            console.log("Clock clicked: center anchor trigger")
+            calendarPopup.isOpen = !calendarPopup.isOpen
+            if (calendarPopup.isOpen) {
+                powerMenu.isOpen = false
+            }
         }
         onNetworkClicked: {
             console.log("Network clicked: control panel trigger")
         }
-        onPowerClicked: powerMenu.isOpen = !powerMenu.isOpen
+        onPowerClicked: {
+            powerMenu.isOpen = !powerMenu.isOpen
+            if (powerMenu.isOpen) {
+                calendarPopup.isOpen = false
+            }
+        }
+    }
+
+    CalendarPopup {
+        id: calendarPopup
     }
 
     PowerMenu {

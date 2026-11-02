@@ -35,3 +35,14 @@ Floorp/
 *.log
 nohup.out
 *.zwc
+
+# Local Task Management & Private Notes (Non-commit)
+TASKS.md
+TODO.md
+.config/**/TASKS.md
+.config/**/TODO.md
+
+# Quickshell runtime states & caches
+.config/quickshell/weather_config.json
+.config/quickshell/weather_cache.json
+.config/quickshell/weather_locations.json

@@ -65,9 +65,9 @@ hl.bind(mainMod .. " + S",         hl.dsp.workspace.toggle_special("magic"))
 hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic" }))
 
 -- Group / Ungroup the current window
-hl.bind("SUPER + G",            hl.dsp.group.toggle())
-hl.bind("SUPER + CTRL + ",  hl.dsp.group.prev())
-hl.bind("SUPER + ALT + G", hl.dsp.group.next())
+hl.bind(mainMod .. " + G",          hl.dsp.group.toggle())
+hl.bind(mainMod .. " + CTRL + G",    hl.dsp.group.prev())
+hl.bind(mainMod .. " + ALT + G",    hl.dsp.group.next())
 
 -- Scroll through existing workspaces with mainMod + scroll
 hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
