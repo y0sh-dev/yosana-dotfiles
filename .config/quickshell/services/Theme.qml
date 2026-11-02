@@ -1,9 +1,20 @@
 pragma Singleton
 import QtQuick
+import Quickshell
 import Quickshell.Io
 
 QtObject {
     id: theme
+
+    // Adaptive Resolution Scaling (Baseline: 2560x1440 WQHD)
+    // Automatically adapts popups & modals to 1080p (0.75), 1440p (1.0), and 4K (1.5)
+    readonly property real uiScale: {
+        if (Quickshell.screens && Quickshell.screens.length > 0) {
+            var s = Quickshell.screens[0];
+            return Math.max(0.7, Math.min(s.width / 2560, s.height / 1440));
+        }
+        return 1.0;
+    }
 
     // Dedicated trigger file touched immediately when wallpaper workflow completes
     property string triggerPath: "/home/yukkkk1/.cache/wal_quickshell_reload"
