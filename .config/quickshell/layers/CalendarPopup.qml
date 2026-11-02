@@ -433,12 +433,12 @@ PanelWindow {
 
                             // Day Column
                             Item {
-                                implicitWidth: 160
-                                implicitHeight: 96
+                                implicitWidth: 164
+                                implicitHeight: 104
 
                                 Column {
                                     anchors.fill: parent
-                                    spacing: 4
+                                    spacing: 5
 
                                     // Row 1: Day (TUE / WED) + Forecast Weather Icon
                                     RowLayout {
@@ -447,7 +447,7 @@ PanelWindow {
                                         Text {
                                             text: modelData.day
                                             color: Theme.fgSoft
-                                            font.pixelSize: 15
+                                            font.pixelSize: 16
                                             font.bold: true
                                             font.family: Theme.fontFamily
                                         }
@@ -457,79 +457,65 @@ PanelWindow {
                                         Text {
                                             text: modelData.icon
                                             color: Theme.accent
-                                            font.pixelSize: 20
+                                            font.pixelSize: 22
                                             font.family: Theme.fontFamily
                                         }
                                     }
 
-                                    // Row 2: 気温 (Max / Min)
+                                    // Row 2: 気温 (Max / Min) - Prominent 15px bold
                                     Row {
-                                        spacing: 6
+                                        spacing: 8
                                         Text {
-                                            text: "気温"
-                                            color: Theme.subtextDim
-                                            font.pixelSize: 13
+                                            text: "󰔄"
+                                            color: Theme.accent
+                                            font.pixelSize: 15
                                             font.family: Theme.fontFamily
                                             anchors.verticalCenter: parent.verticalCenter
                                         }
                                         Text {
-                                            text: modelData.max
+                                            text: modelData.max + "  /  " + modelData.min
+                                            color: Theme.fgSoft
+                                            font.pixelSize: 15
+                                            font.bold: true
+                                            font.family: Theme.fontFamily
+                                            anchors.verticalCenter: parent.verticalCenter
+                                        }
+                                    }
+
+                                    // Row 3: 降水確率 - Prominent 14px bold
+                                    Row {
+                                        spacing: 8
+                                        Text {
+                                            text: "󰖖"
+                                            color: Theme.accent
+                                            font.pixelSize: 15
+                                            font.family: Theme.fontFamily
+                                            anchors.verticalCenter: parent.verticalCenter
+                                        }
+                                        Text {
+                                            text: "降水 " + modelData.rainChance
                                             color: Theme.fgSoft
                                             font.pixelSize: 14
                                             font.bold: true
                                             font.family: Theme.fontFamily
                                             anchors.verticalCenter: parent.verticalCenter
                                         }
-                                        Text {
-                                            text: "/"
-                                            color: Theme.subtextDim
-                                            font.pixelSize: 12
-                                            anchors.verticalCenter: parent.verticalCenter
-                                        }
-                                        Text {
-                                            text: modelData.min
-                                            color: Theme.fgSoft
-                                            font.pixelSize: 14
-                                            font.bold: true
-                                            font.family: Theme.fontFamily
-                                            anchors.verticalCenter: parent.verticalCenter
-                                        }
                                     }
 
-                                    // Row 3: 降水確率
+                                    // Row 4: 風速 & 風向 - Prominent 14px bold
                                     Row {
-                                        spacing: 6
+                                        spacing: 8
                                         Text {
-                                            text: "降水"
-                                            color: Theme.subtextDim
-                                            font.pixelSize: 13
-                                            font.family: Theme.fontFamily
-                                            anchors.verticalCenter: parent.verticalCenter
-                                        }
-                                        Text {
-                                            text: modelData.rainChance
-                                            color: Theme.fgSoft
-                                            font.pixelSize: 13
-                                            font.bold: true
-                                            font.family: Theme.fontFamily
-                                            anchors.verticalCenter: parent.verticalCenter
-                                        }
-                                    }
-
-                                    // Row 4: 風速 & 風向
-                                    Row {
-                                        spacing: 6
-                                        Text {
-                                            text: "風速"
-                                            color: Theme.subtextDim
-                                            font.pixelSize: 13
+                                            text: "󰖝"
+                                            color: Theme.accent
+                                            font.pixelSize: 15
                                             font.family: Theme.fontFamily
                                             anchors.verticalCenter: parent.verticalCenter
                                         }
                                         Text {
                                             text: (modelData.windDir ? (modelData.windDir + " ") : "") + modelData.windSpeed
                                             color: Theme.fgSoft
-                                            font.pixelSize: 13
+                                            font.pixelSize: 14
                                             font.bold: true
                                             font.family: Theme.fontFamily
                                             anchors.verticalCenter: parent.verticalCenter
@@ -542,7 +528,7 @@ PanelWindow {
                             Rectangle {
                                 visible: index === 0
                                 width: 1
-                                height: 76
+                                height: 84
                                 color: Theme.border
                                 opacity: 0.25
                                 anchors.verticalCenter: parent.verticalCenter
@@ -840,31 +826,54 @@ PanelWindow {
             anchors.bottom: parent.bottom
             anchors.margins: 20
 
-            // Solid Framed Enclosure Card for Calendar (Frameless pure matte card)
+            // Solid Framed Enclosure Card for Calendar (Frameless pure matte card with gentle translucency)
             Rectangle {
                 anchors.fill: parent
-                color: Theme.surface
+                color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.45)
                 border.width: 0
                 radius: 14
 
+                // Mouse wheel navigation for smooth month switching
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.NoButton // Let clicks pass through to child buttons
+                    onWheel: function(wheel) {
+                        if (wheel.angleDelta.y > 0) {
+                            if (calendarRoot.viewMonth === 0) {
+                                calendarRoot.viewMonth = 11;
+                                calendarRoot.viewYear--;
+                            } else {
+                                calendarRoot.viewMonth--;
+                            }
+                        } else if (wheel.angleDelta.y < 0) {
+                            if (calendarRoot.viewMonth === 11) {
+                                calendarRoot.viewMonth = 0;
+                                calendarRoot.viewYear++;
+                            } else {
+                                calendarRoot.viewMonth++;
+                            }
+                        }
+                    }
+                }
+
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 12
+                    anchors.margins: 14
+                    spacing: 10
 
-                    // 1. Navigation Header: Bi-split Capsule Navigation (◀ Month ▶ / ◀ Year ▶)
+                    // 1. Navigation Header: Bi-split Capsule Navigation (◀ Month ▶ / ◀ Year ▶ / Reset)
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 10
+                        spacing: 8
 
                         // ─── Bi-split Month Capsule ───
                         Rectangle {
                             id: monthCapsule
-                            implicitWidth: 190
+                            implicitWidth: 186
                             implicitHeight: 36
                             radius: 18
                             color: "transparent"
-                            border.color: Qt.rgba(Theme.border.r, Theme.border.g, Theme.border.b, 0.4)
+                            border.color: Qt.rgba(1, 1, 1, 0.08)
                             border.width: 1
                             clip: true
 
@@ -873,48 +882,61 @@ PanelWindow {
                                 anchors.left: parent.left
                                 anchors.top: parent.top
                                 anchors.bottom: parent.bottom
-                                width: parent.width / 2
-                                radius: 18
-                                color: prevMonthArea.containsMouse ? Theme.surfaceHover : "transparent"
+                                anchors.right: monthDivider.left
+                                anchors.margins: 2
+                                radius: 16
+                                color: prevMonthArea.containsMouse ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18) : "transparent"
                                 Behavior on color { ColorAnimation { duration: 120 } }
+                            }
+
+                            // Center micro-gap
+                            Item {
+                                id: monthDivider
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                width: 2
+                                height: parent.height
                             }
 
                             // Right-half rounded highlight (Next Month)
                             Rectangle {
+                                anchors.left: monthDivider.right
                                 anchors.right: parent.right
                                 anchors.top: parent.top
                                 anchors.bottom: parent.bottom
-                                width: parent.width / 2
-                                radius: 18
-                                color: nextMonthArea.containsMouse ? Theme.surfaceHover : "transparent"
+                                anchors.margins: 2
+                                radius: 16
+                                color: nextMonthArea.containsMouse ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18) : "transparent"
                                 Behavior on color { ColorAnimation { duration: 120 } }
                             }
 
-                            // Center Content
+                            // Content (Centered over the capsule)
                             Row {
                                 anchors.centerIn: parent
-                                spacing: 8
+                                spacing: 10
 
                                 Text {
                                     text: "◀"
-                                    color: prevMonthArea.containsMouse ? Theme.accent : Theme.subtext
-                                    font.pixelSize: 13
+                                    color: prevMonthArea.containsMouse ? Theme.accent : Theme.subtextDim
+                                    font.pixelSize: 12
+                                    anchors.verticalCenter: parent.verticalCenter
                                     Behavior on color { ColorAnimation { duration: 120 } }
                                 }
 
                                 Text {
                                     readonly property var monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
                                     text: monthNames[calendarRoot.viewMonth]
-                                    color: Theme.fg
+                                    color: Theme.fgSoft
                                     font.pixelSize: 14
                                     font.bold: true
                                     font.family: Theme.fontFamily
+                                    anchors.verticalCenter: parent.verticalCenter
                                 }
 
                                 Text {
                                     text: "▶"
-                                    color: nextMonthArea.containsMouse ? Theme.accent : Theme.subtext
-                                    font.pixelSize: 13
+                                    color: nextMonthArea.containsMouse ? Theme.accent : Theme.subtextDim
+                                    font.pixelSize: 12
+                                    anchors.verticalCenter: parent.verticalCenter
                                     Behavior on color { ColorAnimation { duration: 120 } }
                                 }
                             }
@@ -925,7 +947,7 @@ PanelWindow {
                                 anchors.left: parent.left
                                 anchors.top: parent.top
                                 anchors.bottom: parent.bottom
-                                width: parent.width / 2
+                                anchors.right: monthDivider.left
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
@@ -941,10 +963,10 @@ PanelWindow {
                             // Right-half hit area (center to ▶)
                             MouseArea {
                                 id: nextMonthArea
+                                anchors.left: monthDivider.right
                                 anchors.right: parent.right
                                 anchors.top: parent.top
                                 anchors.bottom: parent.bottom
-                                width: parent.width / 2
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
@@ -965,7 +987,7 @@ PanelWindow {
                             implicitHeight: 36
                             radius: 18
                             color: "transparent"
-                            border.color: Qt.rgba(Theme.border.r, Theme.border.g, Theme.border.b, 0.4)
+                            border.color: Qt.rgba(1, 1, 1, 0.08)
                             border.width: 1
                             clip: true
 
@@ -974,47 +996,60 @@ PanelWindow {
                                 anchors.left: parent.left
                                 anchors.top: parent.top
                                 anchors.bottom: parent.bottom
-                                width: parent.width / 2
-                                radius: 18
-                                color: prevYearArea.containsMouse ? Theme.surfaceHover : "transparent"
+                                anchors.right: yearDivider.left
+                                anchors.margins: 2
+                                radius: 16
+                                color: prevYearArea.containsMouse ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18) : "transparent"
                                 Behavior on color { ColorAnimation { duration: 120 } }
+                            }
+
+                            // Center micro-gap
+                            Item {
+                                id: yearDivider
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                width: 2
+                                height: parent.height
                             }
 
                             // Right-half rounded highlight (Next Year)
                             Rectangle {
+                                anchors.left: yearDivider.right
                                 anchors.right: parent.right
                                 anchors.top: parent.top
                                 anchors.bottom: parent.bottom
-                                width: parent.width / 2
-                                radius: 18
-                                color: nextYearArea.containsMouse ? Theme.surfaceHover : "transparent"
+                                anchors.margins: 2
+                                radius: 16
+                                color: nextYearArea.containsMouse ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18) : "transparent"
                                 Behavior on color { ColorAnimation { duration: 120 } }
                             }
 
-                            // Center Content
+                            // Content (Centered over the capsule)
                             Row {
                                 anchors.centerIn: parent
                                 spacing: 8
 
                                 Text {
                                     text: "◀"
-                                    color: prevYearArea.containsMouse ? Theme.accent : Theme.subtext
-                                    font.pixelSize: 12
+                                    color: prevYearArea.containsMouse ? Theme.accent : Theme.subtextDim
+                                    font.pixelSize: 11
+                                    anchors.verticalCenter: parent.verticalCenter
                                     Behavior on color { ColorAnimation { duration: 120 } }
                                 }
 
                                 Text {
                                     text: calendarRoot.viewYear.toString()
-                                    color: Theme.fg
+                                    color: Theme.fgSoft
                                     font.pixelSize: 14
                                     font.bold: true
                                     font.family: Theme.fontFamily
+                                    anchors.verticalCenter: parent.verticalCenter
                                 }
 
                                 Text {
                                     text: "▶"
-                                    color: nextYearArea.containsMouse ? Theme.accent : Theme.subtext
-                                    font.pixelSize: 12
+                                    color: nextYearArea.containsMouse ? Theme.accent : Theme.subtextDim
+                                    font.pixelSize: 11
+                                    anchors.verticalCenter: parent.verticalCenter
                                     Behavior on color { ColorAnimation { duration: 120 } }
                                 }
                             }
@@ -1025,7 +1060,7 @@ PanelWindow {
                                 anchors.left: parent.left
                                 anchors.top: parent.top
                                 anchors.bottom: parent.bottom
-                                width: parent.width / 2
+                                anchors.right: yearDivider.left
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: calendarRoot.viewYear--
@@ -1034,10 +1069,10 @@ PanelWindow {
                             // Right-half hit area (center to ▶)
                             MouseArea {
                                 id: nextYearArea
+                                anchors.left: yearDivider.right
                                 anchors.right: parent.right
                                 anchors.top: parent.top
                                 anchors.bottom: parent.bottom
-                                width: parent.width / 2
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: calendarRoot.viewYear++
@@ -1052,14 +1087,15 @@ PanelWindow {
                             implicitHeight: 36
                             radius: 18
                             color: todayMouse.containsMouse ? Theme.surfaceHover : "transparent"
-                            border.color: Theme.border
+                            border.color: todayMouse.containsMouse ? Theme.accent : Qt.rgba(1, 1, 1, 0.08)
                             border.width: 1
 
                             Text {
                                 anchors.centerIn: parent
                                 text: "󰃭"
-                                color: todayMouse.containsMouse ? Theme.accent : Theme.subtext
+                                color: todayMouse.containsMouse ? Theme.accent : Theme.subtextDim
                                 font.pixelSize: 16
+                                Behavior on color { ColorAnimation { duration: 120 } }
                             }
 
                             MouseArea {
@@ -1075,29 +1111,29 @@ PanelWindow {
                         }
                     }
 
-                    // 2. Weekday Header (Sun=Red, Mon-Fri=Subtext, Sat=Blue)
-                    Row {
+                    // 2. Weekday Header (Sun=Red, Mon-Fri=SubtextDim, Sat=Blue)
+                    RowLayout {
                         Layout.fillWidth: true
-                        spacing: 0
+                        spacing: 4
 
                         Repeater {
                             model: [
-                                { name: "Sun", color: Theme.colorSun },  // Pywal Red
-                                { name: "Mon", color: Theme.subtext },
-                                { name: "Tue", color: Theme.subtext },
-                                { name: "Wed", color: Theme.subtext },
-                                { name: "Thu", color: Theme.subtext },
-                                { name: "Fri", color: Theme.subtext },
-                                { name: "Sat", color: Theme.colorSat }   // Pywal Blue
+                                { name: "Sun", color: Theme.colorSun },
+                                { name: "Mon", color: Theme.subtextDim },
+                                { name: "Tue", color: Theme.subtextDim },
+                                { name: "Wed", color: Theme.subtextDim },
+                                { name: "Thu", color: Theme.subtextDim },
+                                { name: "Fri", color: Theme.subtextDim },
+                                { name: "Sat", color: Theme.colorSat }
                             ]
                             delegate: Item {
-                                width: (rightHalf.width - 72) / 7
-                                height: 28
+                                Layout.fillWidth: true
+                                height: 26
                                 Text {
                                     anchors.centerIn: parent
                                     text: modelData.name
                                     color: modelData.color
-                                    font.pixelSize: 13
+                                    font.pixelSize: 12
                                     font.bold: true
                                     font.family: Theme.fontFamily
                                 }
@@ -1105,18 +1141,26 @@ PanelWindow {
                         }
                     }
 
-                    // 3. Days Grid (42 Cells: 7 cols x 6 rows)
+                    // 3. Subtle Matte Divider Line between Header & Grid
+                    Rectangle {
+                        Layout.fillWidth: true
+                        height: 32
+                        color: Theme.border
+                        opacity: 0.18
+                    }
+
+                    // 4. Days Grid (42 Cells: 7 cols x 6 rows) - Matte Tile Grid Architecture
                     GridLayout {
                         columns: 7
                         rowSpacing: 4
-                        columnSpacing: 0
+                        columnSpacing: 4
                         Layout.fillWidth: true
 
                         Repeater {
                             model: 42
                             delegate: Item {
-                                implicitWidth: (rightHalf.width - 72) / 7
-                                implicitHeight: 34
+                                Layout.fillWidth: true
+                                implicitHeight: 38 // Square-proportioned tile (~48px x 46px), matching left weather height
 
                                 readonly property int firstDayOfWeek: new Date(calendarRoot.viewYear, calendarRoot.viewMonth, 1).getDay()
                                 readonly property int daysInCurrentMonth: new Date(calendarRoot.viewYear, calendarRoot.viewMonth + 1, 0).getDate()
@@ -1135,25 +1179,39 @@ PanelWindow {
                                     calendarRoot.viewMonth === calendarRoot.currentTime.getMonth() &&
                                     displayDay === calendarRoot.currentTime.getDate()
 
+                                // Matte Tile Slot
                                 Rectangle {
-                                    anchors.centerIn: parent
-                                    width: 32; height: 32
-                                    radius: 16
+                                    anchors.fill: parent
+                                    radius: 8
+
+                                    // Background: Today is accent, Hover is surfaceHover, default is transparent
                                     color: {
                                         if (isToday) return Theme.accent;
                                         if (dayMouse.containsMouse) return Theme.surfaceHover;
                                         return "transparent";
                                     }
 
+                                    // Subtle structural slot border for current month (creates authentic calendar layer)
+                                    border.color: {
+                                        if (isToday) return Theme.accent;
+                                        if (dayMouse.containsMouse) return Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.35);
+                                        if (isCurrentMonth) return Qt.rgba(1, 1, 1, 0.04);
+                                        return "transparent";
+                                    }
+                                    border.width: 1
+
+                                    Behavior on color { ColorAnimation { duration: 100 } }
+                                    Behavior on border.color { ColorAnimation { duration: 100 } }
+
                                     Text {
                                         anchors.centerIn: parent
                                         text: displayDay.toString()
                                         color: {
-                                            if (isToday) return "#000000"; // Black high-contrast on solid accent pill
-                                            if (!isCurrentMonth) return "#252c38"; // Quiet dim tone for other months
+                                            if (isToday) return "#000000"; // Sharp contrast on solid accent pill
+                                            if (!isCurrentMonth) return Qt.rgba(Theme.subtextDim.r, Theme.subtextDim.g, Theme.subtextDim.b, 0.28); // Elegant ghost depth
                                             if (index % 7 === 0) return Theme.colorSun; // Sunday Red
                                             if (index % 7 === 6) return Theme.colorSat; // Saturday Blue
-                                            return Theme.fg;
+                                            return Theme.fgSoft;
                                         }
                                         font.pixelSize: 14
                                         font.bold: isToday
@@ -1165,6 +1223,7 @@ PanelWindow {
                                     id: dayMouse
                                     anchors.fill: parent
                                     hoverEnabled: true
+                                    cursorShape: isCurrentMonth ? Qt.PointingHandCursor : Qt.ArrowCursor
                                 }
                             }
                         }

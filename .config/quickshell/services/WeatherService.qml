@@ -50,39 +50,28 @@ QtObject {
         }
     }
 
+    // Process to execute --set-city and reliably react upon exit
+    property var setCityProc: Process {
+        id: setCityProcess
+        onExited: function(exitCode, exitStatus) {
+            weatherService.isLoading = false;
+            // The python backend has finished writing fresh cache: reload instantly!
+            weatherService.loadCache();
+        }
+    }
+
     // Process to read cache JSON into QML
     property var cacheProc: Process {
+        id: cacheProcess
         command: ["cat", weatherService.cacheFile]
         stdout: StdioCollector {
+            id: cacheCollector
             onDataChanged: {
-                var raw = (data || "").toString().trim();
-                if (raw.length > 0) {
-                    try {
-                        var parsed = JSON.parse(raw);
-                        if (parsed.city) {
-                            weatherService.currentCityName = parsed.city.name || weatherService.currentCityName;
-                            weatherService.currentRomaji = parsed.city.romaji || parsed.city.name || "Tokyo";
-                            weatherService.currentPref = parsed.city.pref || "";
-                        }
-                        if (parsed.current) {
-                            weatherService.temp = parsed.current.temp || "--";
-                            weatherService.desc = parsed.current.desc || "";
-                            weatherService.icon = parsed.current.icon || "󰖐";
-                            weatherService.maxTemp = parsed.current.maxTemp || "--";
-                            weatherService.minTemp = parsed.current.minTemp || "--";
-                            weatherService.rainChance = parsed.current.rainChance || "0%";
-                            weatherService.wind = parsed.current.wind || "-- km/h";
-                            weatherService.windDir = parsed.current.windDir || "";
-                            weatherService.humidity = parsed.current.humidity || "--%";
-                        }
-                        if (parsed.forecast) {
-                            weatherService.forecast = parsed.forecast;
-                        }
-                    } catch(e) {
-                        console.log("WeatherService JSON parse error:", e);
-                    }
-                }
+                weatherService.applyWeatherData(data);
             }
+        }
+        onExited: function(exitCode, exitStatus) {
+            weatherService.applyWeatherData(cacheCollector.data);
         }
     }
 
@@ -111,6 +100,35 @@ QtObject {
         refresh();
     }
 
+    function applyWeatherData(raw) {
+        var text = (raw || "").toString().trim();
+        if (text.length === 0) return;
+        try {
+            var parsed = JSON.parse(text);
+            if (parsed.city) {
+                weatherService.currentCityName = parsed.city.name || weatherService.currentCityName;
+                weatherService.currentRomaji = parsed.city.romaji || parsed.city.name || "Tokyo";
+                weatherService.currentPref = parsed.city.pref || "";
+            }
+            if (parsed.current) {
+                weatherService.temp = parsed.current.temp || "--";
+                weatherService.desc = parsed.current.desc || "";
+                weatherService.icon = parsed.current.icon || "󰖐";
+                weatherService.maxTemp = parsed.current.maxTemp || "--";
+                weatherService.minTemp = parsed.current.minTemp || "--";
+                weatherService.rainChance = parsed.current.rainChance || "0%";
+                weatherService.wind = parsed.current.wind || "-- km/h";
+                weatherService.windDir = parsed.current.windDir || "";
+                weatherService.humidity = parsed.current.humidity || "--%";
+            }
+            if (parsed.forecast) {
+                weatherService.forecast = parsed.forecast;
+            }
+        } catch(e) {
+            console.log("WeatherService JSON parse error:", e);
+        }
+    }
+
     function loadLocations() {
         if (!locationsProc.running) {
             locationsProc.running = true;
@@ -118,8 +136,8 @@ QtObject {
     }
 
     function loadCache() {
-        if (!cacheProc.running) {
-            cacheProc.running = true;
+        if (!cacheProcess.running) {
+            cacheProcess.running = true;
         }
     }
 
@@ -141,24 +159,15 @@ QtObject {
         weatherService.currentCityName = payload.name;
         weatherService.currentRomaji = payload.romaji;
         weatherService.currentPref = payload.pref;
+        weatherService.isLoading = true;
 
-        // Call python script to persist and fetch immediately
-        Quickshell.execDetached([
+        // Reliable synchronous trigger: python exits -> onExited fires -> loadCache executes
+        setCityProcess.command = [
             "python3",
             weatherService.scriptPath,
             "--set-city",
             JSON.stringify(payload)
-        ]);
-
-        // Trigger cache reload shortly
-        reloadTimer.restart();
-    }
-
-    property var reloadTimer: Timer {
-        interval: 1200
-        repeat: false
-        onTriggered: {
-            weatherService.loadCache();
-        }
+        ];
+        setCityProcess.running = true;
     }
 }
