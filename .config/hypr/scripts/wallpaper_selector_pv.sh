@@ -32,5 +32,4 @@ echo "$FULL_PATH" > ~/.config/hypr/current_wallpaper_awww
 sleep 0.5s
 hyprctl reload
 bash ~/.config/eww/scripts/set_hyprlock.sh
-eww reload
 echo "$FULL_PATH" > ~/.cache/wal_quickshell_reload
