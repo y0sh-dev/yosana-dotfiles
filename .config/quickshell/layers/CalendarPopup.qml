@@ -51,10 +51,9 @@ PanelWindow {
         id: contentMonolith
         anchors.fill: parent
         // Deep obsidian black with gentle translucency (84%) allowing Hyprland blur to shine through
-        color: Qt.rgba(0, 0, 0, 0.84)
+        color: Qt.rgba(0, 0, 0, 0.90)
         radius: Theme.radiusIsland // 20px
-        border.color: Theme.border
-        border.width: 1
+        border.width: 0 // Pure matte aesthetic: zero harsh border lines
 
         opacity: calendarRoot.isOpen ? 1.0 : 0.0
         transform: Translate {
@@ -75,7 +74,7 @@ PanelWindow {
             anchors.bottomMargin: 20
             width: 1
             color: Theme.border
-            opacity: 0.7
+            opacity: 0.25 // Subtle matte separation
         }
 
         // ====================================================================
@@ -94,10 +93,11 @@ PanelWindow {
 
             // ================================================================
             // VIEW A: Main Info View (Clock + Weather)
+            // Vertically centered inside leftHalf: exact equal breathing room top & bottom
             // ================================================================
             Column {
                 id: mainWeatherColumn
-                anchors.top: parent.top
+                anchors.verticalCenter: parent.verticalCenter
                 anchors.left: parent.left
                 anchors.right: parent.right
                 spacing: 0
@@ -204,7 +204,7 @@ PanelWindow {
                     width: parent.width
                     height: 1
                     color: Theme.border
-                    opacity: 0.5
+                    opacity: 0.2 // Soft matte line
                 }
                 Item { width: 1; height: 14 }
 
@@ -266,7 +266,7 @@ PanelWindow {
                             implicitHeight: 30
                             radius: 15
                             color: cityMouse.containsMouse ? Theme.surfaceHover : Theme.surface
-                            border.color: cityMouse.containsMouse ? Theme.accent : Theme.border
+                            border.color: cityMouse.containsMouse ? Theme.accent : Qt.rgba(Theme.border.r, Theme.border.g, Theme.border.b, 0.4)
                             border.width: 1
 
                             Row {
@@ -311,10 +311,10 @@ PanelWindow {
                             }
                         }
 
-                        // Max & Min Temperature Stack (Prominent 15px font with vivid high-contrast colors)
+                        // Max & Min Temperature Stack (Soft off-white matching surrounding text, zero glare)
                         Text {
                             text: "最高  " + WeatherService.maxTemp + " ↑"
-                            color: Theme.tempHot // Bright vivid coral-red, highly legible
+                            color: Theme.fgSoft
                             font.pixelSize: 15
                             font.bold: true
                             font.family: Theme.fontFamily
@@ -322,7 +322,7 @@ PanelWindow {
 
                         Text {
                             text: "最低  " + WeatherService.minTemp + " ↓"
-                            color: Theme.tempCold // Crisp sky-blue
+                            color: Theme.fgSoft
                             font.pixelSize: 15
                             font.bold: true
                             font.family: Theme.fontFamily
@@ -331,175 +331,221 @@ PanelWindow {
                 }
 
                 // Breathing Space between Weather and Metrics
-                Item { width: 1; height: 12 }
+                Item { width: 1; height: 6 }
                 Rectangle {
                     width: parent.width
                     height: 1
                     color: Theme.border
-                    opacity: 0.5
+                    opacity: 0.2 // Soft matte line
                 }
-                Item { width: 1; height: 12 }
+                Item { width: 1; height: 6 }
 
-                // 3. Detailed Weather Metrics: Rain Probability, Wind (Dir + Speed), Humidity
-                // Prominent icons (18px) and bold values (15px) for effortless legibility
+                // 3. Detailed Weather Metrics: Vertical Hierarchy (Icon on top, stat below)
+                // [ Icon ]      [ Icon ]      [ Icon ]
+                // 降水 10%    北 5km/h       湿度 45%
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 24
+                    spacing: 38
 
                     // 降水確率
-                    Row {
-                        spacing: 8
-                        Text { text: "󰖖"; color: Theme.accent; font.pixelSize: 18; font.family: Theme.fontFamily; anchors.verticalCenter: parent.verticalCenter }
-                        Text { text: "降水 " + WeatherService.rainChance; color: Theme.fgSoft; font.pixelSize: 15; font.bold: true; font.family: Theme.fontFamily; anchors.verticalCenter: parent.verticalCenter }
+                    Column {
+                        spacing: 6
+                        anchors.verticalCenter: parent.verticalCenter
+                        Text {
+                            text: "󰖖"
+                            color: Theme.accent
+                            font.pixelSize: 22
+                            font.family: Theme.fontFamily
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+                        Text {
+                            text: "降水 " + WeatherService.rainChance
+                            color: Theme.fgSoft
+                            font.pixelSize: 13
+                            font.bold: true
+                            font.family: Theme.fontFamily
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
                     }
 
                     // 風速 & 風向
-                    Row {
-                        spacing: 8
-                        Text { text: "󰖝"; color: Theme.accent; font.pixelSize: 18; font.family: Theme.fontFamily; anchors.verticalCenter: parent.verticalCenter }
+                    Column {
+                        spacing: 6
+                        anchors.verticalCenter: parent.verticalCenter
+                        Text {
+                            text: "󰖝"
+                            color: Theme.accent
+                            font.pixelSize: 22
+                            font.family: Theme.fontFamily
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
                         Text {
                             text: (WeatherService.windDir ? (WeatherService.windDir + " ") : "") + WeatherService.wind
                             color: Theme.fgSoft
-                            font.pixelSize: 15
+                            font.pixelSize: 13
                             font.bold: true
                             font.family: Theme.fontFamily
-                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.horizontalCenter: parent.horizontalCenter
                         }
                     }
 
                     // 湿度
-                    Row {
-                        spacing: 8
-                        Text { text: "󰖎"; color: Theme.accent; font.pixelSize: 18; font.family: Theme.fontFamily; anchors.verticalCenter: parent.verticalCenter }
-                        Text { text: "湿度 " + WeatherService.humidity; color: Theme.fgSoft; font.pixelSize: 15; font.bold: true; font.family: Theme.fontFamily; anchors.verticalCenter: parent.verticalCenter }
+                    Column {
+                        spacing: 6
+                        anchors.verticalCenter: parent.verticalCenter
+                        Text {
+                            text: "󰖎"
+                            color: Theme.accent
+                            font.pixelSize: 22
+                            font.family: Theme.fontFamily
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+                        Text {
+                            text: "湿度 " + WeatherService.humidity
+                            color: Theme.fgSoft
+                            font.pixelSize: 13
+                            font.bold: true
+                            font.family: Theme.fontFamily
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
                     }
                 }
 
                 // Breathing Space between Metrics and Forecast Cards
-                Item { width: 1; height: 12 }
+                Item { width: 1; height: 18 }
                 Rectangle {
                     width: parent.width
                     height: 1
                     color: Theme.border
-                    opacity: 0.5
+                    opacity: 0.2 // Soft matte line
                 }
-                Item { width: 1; height: 12 }
+                Item { width: 1; height: 18 }
 
-                // 4. Two-Day Forecast with Vertical Stat Hierarchy (TUE / WED)
+                // 4. Two-Day Forecast: Frameless Minimalist Layout with Single Thin Subtle Divider
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 14
+                    spacing: 16
 
                     Repeater {
                         model: WeatherService.forecast
-                        delegate: Rectangle {
-                            implicitWidth: 180
-                            implicitHeight: 104
-                            radius: 12
-                            color: Theme.surface
-                            border.color: Theme.border
-                            border.width: 1
+                        delegate: Row {
+                            spacing: 16
 
-                            Column {
-                                anchors.fill: parent
-                                anchors.margins: 10
-                                spacing: 4
+                            // Day Column
+                            Item {
+                                implicitWidth: 160
+                                implicitHeight: 96
 
-                                // Row 1: Day (TUE / WED) + Forecast Weather Icon
-                                RowLayout {
-                                    width: parent.width
+                                Column {
+                                    anchors.fill: parent
+                                    spacing: 4
 
-                                    Text {
-                                        text: modelData.day
-                                        color: Theme.fgSoft
-                                        font.pixelSize: 15
-                                        font.bold: true
-                                        font.family: Theme.fontFamily
+                                    // Row 1: Day (TUE / WED) + Forecast Weather Icon
+                                    RowLayout {
+                                        width: parent.width
+
+                                        Text {
+                                            text: modelData.day
+                                            color: Theme.fgSoft
+                                            font.pixelSize: 15
+                                            font.bold: true
+                                            font.family: Theme.fontFamily
+                                        }
+
+                                        Item { Layout.fillWidth: true }
+
+                                        Text {
+                                            text: modelData.icon
+                                            color: Theme.accent
+                                            font.pixelSize: 20
+                                            font.family: Theme.fontFamily
+                                        }
                                     }
 
-                                    Item { Layout.fillWidth: true }
+                                    // Row 2: 気温 (Max / Min)
+                                    Row {
+                                        spacing: 6
+                                        Text {
+                                            text: "気温"
+                                            color: Theme.subtextDim
+                                            font.pixelSize: 13
+                                            font.family: Theme.fontFamily
+                                            anchors.verticalCenter: parent.verticalCenter
+                                        }
+                                        Text {
+                                            text: modelData.max
+                                            color: Theme.fgSoft
+                                            font.pixelSize: 14
+                                            font.bold: true
+                                            font.family: Theme.fontFamily
+                                            anchors.verticalCenter: parent.verticalCenter
+                                        }
+                                        Text {
+                                            text: "/"
+                                            color: Theme.subtextDim
+                                            font.pixelSize: 12
+                                            anchors.verticalCenter: parent.verticalCenter
+                                        }
+                                        Text {
+                                            text: modelData.min
+                                            color: Theme.fgSoft
+                                            font.pixelSize: 14
+                                            font.bold: true
+                                            font.family: Theme.fontFamily
+                                            anchors.verticalCenter: parent.verticalCenter
+                                        }
+                                    }
 
-                                    Text {
-                                        text: modelData.icon
-                                        color: Theme.accent
-                                        font.pixelSize: 20
-                                        font.family: Theme.fontFamily
+                                    // Row 3: 降水確率
+                                    Row {
+                                        spacing: 6
+                                        Text {
+                                            text: "降水"
+                                            color: Theme.subtextDim
+                                            font.pixelSize: 13
+                                            font.family: Theme.fontFamily
+                                            anchors.verticalCenter: parent.verticalCenter
+                                        }
+                                        Text {
+                                            text: modelData.rainChance
+                                            color: Theme.fgSoft
+                                            font.pixelSize: 13
+                                            font.bold: true
+                                            font.family: Theme.fontFamily
+                                            anchors.verticalCenter: parent.verticalCenter
+                                        }
+                                    }
+
+                                    // Row 4: 風速 & 風向
+                                    Row {
+                                        spacing: 6
+                                        Text {
+                                            text: "風速"
+                                            color: Theme.subtextDim
+                                            font.pixelSize: 13
+                                            font.family: Theme.fontFamily
+                                            anchors.verticalCenter: parent.verticalCenter
+                                        }
+                                        Text {
+                                            text: (modelData.windDir ? (modelData.windDir + " ") : "") + modelData.windSpeed
+                                            color: Theme.fgSoft
+                                            font.pixelSize: 13
+                                            font.bold: true
+                                            font.family: Theme.fontFamily
+                                            anchors.verticalCenter: parent.verticalCenter
+                                        }
                                     }
                                 }
+                            }
 
-                                // Row 2: 気温 (Max / Min)
-                                Row {
-                                    spacing: 6
-                                    Text {
-                                        text: "気温"
-                                        color: Theme.subtextDim
-                                        font.pixelSize: 13
-                                        font.family: Theme.fontFamily
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                    Text {
-                                        text: modelData.max
-                                        color: Theme.tempHot
-                                        font.pixelSize: 14
-                                        font.bold: true
-                                        font.family: Theme.fontFamily
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                    Text {
-                                        text: "/"
-                                        color: Theme.subtextDim
-                                        font.pixelSize: 12
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                    Text {
-                                        text: modelData.min
-                                        color: Theme.tempCold
-                                        font.pixelSize: 14
-                                        font.bold: true
-                                        font.family: Theme.fontFamily
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                }
-
-                                // Row 3: 降水確率
-                                Row {
-                                    spacing: 6
-                                    Text {
-                                        text: "降水"
-                                        color: Theme.subtextDim
-                                        font.pixelSize: 13
-                                        font.family: Theme.fontFamily
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                    Text {
-                                        text: modelData.rainChance
-                                        color: Theme.fgSoft
-                                        font.pixelSize: 13
-                                        font.bold: true
-                                        font.family: Theme.fontFamily
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                }
-
-                                // Row 4: 風速 & 風向
-                                Row {
-                                    spacing: 6
-                                    Text {
-                                        text: "風速"
-                                        color: Theme.subtextDim
-                                        font.pixelSize: 13
-                                        font.family: Theme.fontFamily
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                    Text {
-                                        text: (modelData.windDir ? (modelData.windDir + " ") : "") + modelData.windSpeed
-                                        color: Theme.fgSoft
-                                        font.pixelSize: 13
-                                        font.bold: true
-                                        font.family: Theme.fontFamily
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                }
+                            // Subtle vertical separator between tomorrow and day-after-tomorrow
+                            Rectangle {
+                                visible: index === 0
+                                width: 1
+                                height: 76
+                                color: Theme.border
+                                opacity: 0.25
+                                anchors.verticalCenter: parent.verticalCenter
                             }
                         }
                     }
@@ -794,12 +840,11 @@ PanelWindow {
             anchors.bottom: parent.bottom
             anchors.margins: 20
 
-            // Solid Framed Enclosure Card for Calendar
+            // Solid Framed Enclosure Card for Calendar (Frameless pure matte card)
             Rectangle {
                 anchors.fill: parent
                 color: Theme.surface
-                border.color: Theme.border
-                border.width: 1
+                border.width: 0
                 radius: 14
 
                 ColumnLayout {
@@ -819,7 +864,7 @@ PanelWindow {
                             implicitHeight: 36
                             radius: 18
                             color: "transparent"
-                            border.color: Theme.border
+                            border.color: Qt.rgba(Theme.border.r, Theme.border.g, Theme.border.b, 0.4)
                             border.width: 1
                             clip: true
 
@@ -920,7 +965,7 @@ PanelWindow {
                             implicitHeight: 36
                             radius: 18
                             color: "transparent"
-                            border.color: Theme.border
+                            border.color: Qt.rgba(Theme.border.r, Theme.border.g, Theme.border.b, 0.4)
                             border.width: 1
                             clip: true
 
