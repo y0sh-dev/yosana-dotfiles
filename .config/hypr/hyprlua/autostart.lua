@@ -25,7 +25,7 @@ hl.on("hyprland.start", function()
         -- 4. UI & Daemons
         "hypridle",
         "gsr-ui",
-        "~/.config/eww/launch_bar.sh",
+        "quickshell",
         "easyeffects --hide-window --service-mode",
         "sleep 0.5s; swaync",
 
