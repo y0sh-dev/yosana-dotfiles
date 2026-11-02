@@ -13,11 +13,13 @@ PanelWindow {
     property var occupiedWs: []
     property string timeText: ""
 
+    signal archClicked()
+    signal menuClicked()
     signal clockClicked()
     signal networkClicked()
     signal powerClicked()
 
-    WlrLayershell.layer: WlrLayershell.Top
+    WlrLayershell.layer: WlrLayer.Top
     
     anchors {
         top: true
@@ -38,17 +40,50 @@ PanelWindow {
     Item {
         anchors.fill: parent
 
-        // ================= Left: Workspaces Island =================
+        // ================= Island 1 (Left): Arch Linux Logo Island =================
+        Rectangle {
+            id: archIsland
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            width: Theme.islandHeight
+            height: Theme.islandHeight
+            radius: Theme.radiusIsland
+            color: archMouse.containsMouse ? Theme.surfaceHover : Theme.bgIsland
+            border.width: 0
+
+            scale: archMouse.pressed ? 0.90 : (archMouse.containsMouse ? 1.08 : 1.0)
+            Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
+            Behavior on color { ColorAnimation { duration: 150 } }
+
+            Text {
+                anchors.centerIn: parent
+                text: "󰣇"
+                font.pixelSize: 20
+                font.family: Theme.fontFamily
+                color: archMouse.containsMouse ? Theme.accent : Theme.fg
+                Behavior on color { ColorAnimation { duration: Theme.animDuration; easing.type: Theme.animEasing } }
+            }
+
+            MouseArea {
+                id: archMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: barRoot.archClicked()
+            }
+        }
+
+        // ================= Island 2 (Left): Workspaces Island =================
         Rectangle {
             id: wsIsland
-            anchors.left: parent.left
+            anchors.left: archIsland.right
+            anchors.leftMargin: 8
             anchors.verticalCenter: parent.verticalCenter
             implicitHeight: Theme.islandHeight
             implicitWidth: wsContent.implicitWidth + (Theme.islandPaddingH * 2)
             radius: Theme.radiusIsland
             color: Theme.bgIsland
-            border.color: Theme.border
-            border.width: 1
+            border.width: 0
 
             Row {
                 id: wsContent
@@ -61,7 +96,7 @@ PanelWindow {
             }
         }
 
-        // ================= Center: Clock Island (Absolute screen center) =================
+        // ================= Island 3 (Center): Clock Island (Absolute Screen Center) =================
         Rectangle {
             id: clockIsland
             anchors.horizontalCenter: parent.horizontalCenter
@@ -70,8 +105,7 @@ PanelWindow {
             implicitWidth: clockContent.implicitWidth + (Theme.islandPaddingH * 2)
             radius: Theme.radiusIsland
             color: clockMouse.containsMouse ? Theme.surfaceHover : Theme.bgIsland
-            border.color: Theme.border
-            border.width: 1
+            border.width: 0
 
             scale: clockMouse.pressed ? 0.94 : (clockMouse.containsMouse ? 1.04 : 1.0)
             Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
@@ -93,8 +127,42 @@ PanelWindow {
                 onClicked: barRoot.clockClicked()
             }
         }
-        
-        // ================= Right: Media & System Island =================
+
+        // ================= Island 4 (Center Right): Main Control / Menu Shortcut Island =================
+        Rectangle {
+            id: menuIsland
+            anchors.left: clockIsland.right
+            anchors.leftMargin: 8
+            anchors.verticalCenter: parent.verticalCenter
+            width: Theme.islandHeight
+            height: Theme.islandHeight
+            radius: Theme.radiusIsland
+            color: menuMouse.containsMouse ? Theme.surfaceHover : Theme.bgIsland
+            border.width: 0
+
+            scale: menuMouse.pressed ? 0.90 : (menuMouse.containsMouse ? 1.08 : 1.0)
+            Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
+            Behavior on color { ColorAnimation { duration: 150 } }
+
+            Text {
+                anchors.centerIn: parent
+                text: "󱗼"
+                font.pixelSize: 19
+                font.family: Theme.fontFamily
+                color: menuMouse.containsMouse ? Theme.accent : Theme.fg
+                Behavior on color { ColorAnimation { duration: Theme.animDuration; easing.type: Theme.animEasing } }
+            }
+
+            MouseArea {
+                id: menuMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: barRoot.menuClicked()
+            }
+        }
+
+        // ================= Island 5 (Right): Media & System Island =================
         Rectangle {
             id: sysIsland
             anchors.right: parent.right
@@ -103,8 +171,7 @@ PanelWindow {
             implicitWidth: sysContent.implicitWidth + 28
             radius: Theme.radiusIsland
             color: Theme.bgIsland
-            border.color: Theme.border
-            border.width: 1
+            border.width: 0
 
             Row {
                 id: sysContent
@@ -127,6 +194,9 @@ PanelWindow {
                 Row {
                     spacing: 4
                     anchors.verticalCenter: parent.verticalCenter
+
+                    // SwayNC Notification Indicator (Left of volume)
+                    Notification {}
 
                     Volume {}
 

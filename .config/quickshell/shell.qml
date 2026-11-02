@@ -1,5 +1,8 @@
+// Root shell configuration
 import Quickshell
+// Root shell configuration
 import Quickshell.Hyprland
+// Root shell configuration
 import Quickshell.Wayland
 import "./services"
 import "./layers"
@@ -14,6 +17,12 @@ ShellRoot {
         occupiedWs: hyprlandLogic.occupiedWs
         
         timeText: timeService.shortTime
+        onArchClicked: {
+            console.log("Arch Logo clicked")
+        }
+        onMenuClicked: {
+            console.log("Main Menu / Control Shortcut clicked")
+        }
         onClockClicked: {
             console.log("Clock clicked: center anchor trigger")
         }

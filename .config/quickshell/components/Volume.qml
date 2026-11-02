@@ -51,7 +51,7 @@ Item {
                 font.pixelSize: 18 // Icon size: 18px
                 font.family: Theme.fontFamily
                 anchors.verticalCenter: parent.verticalCenter
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on color { ColorAnimation { duration: Theme.animDuration; easing.type: Theme.animEasing } }
             }
 
             // Fixed-width text preventing horizontal shift
@@ -64,7 +64,7 @@ Item {
                 font.family: Theme.fontFamily
                 horizontalAlignment: Text.AlignLeft
                 anchors.verticalCenter: parent.verticalCenter
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on color { ColorAnimation { duration: Theme.animDuration; easing.type: Theme.animEasing } }
             }
         }
     }

@@ -30,7 +30,7 @@ Item {
             color: powerMouse.containsMouse ? Theme.urgent : Theme.fg
             font.pixelSize: 18 // Icon size: 18px
             font.family: Theme.fontFamily
-            Behavior on color { ColorAnimation { duration: 150 } }
+            Behavior on color { ColorAnimation { duration: Theme.animDuration; easing.type: Theme.animEasing } }
         }
     }
 

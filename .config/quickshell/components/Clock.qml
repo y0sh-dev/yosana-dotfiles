@@ -9,4 +9,11 @@ Text {
     font.pixelSize: Theme.clockFontSize
     font.bold: true
     font.family: Theme.fontFamily
+
+    Behavior on color {
+        ColorAnimation {
+            duration: Theme.animDuration
+            easing.type: Theme.animEasing
+        }
+    }
 }

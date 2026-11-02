@@ -88,7 +88,7 @@ Item {
             font.pixelSize: 16 // Icon size: 16px
             font.family: Theme.fontFamily
             color: networkRoot.isConnected ? Theme.fg : Theme.urgent
-            Behavior on color { ColorAnimation { duration: 150 } }
+            Behavior on color { ColorAnimation { duration: Theme.animDuration; easing.type: Theme.animEasing } }
         }
     }
 
