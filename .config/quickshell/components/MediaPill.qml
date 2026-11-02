@@ -66,6 +66,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
 
                     scale: mediaRoot.isPlaying ? (1.0 + Math.sin(mediaRoot.animPhase * 2) * 0.08) : 1.0
+                    Behavior on color { ColorAnimation { duration: Theme.animDuration; easing.type: Theme.animEasing } }
                 }
 
                 Text {
@@ -78,6 +79,7 @@ Item {
                     maximumLineCount: 1
                     width: Math.min(implicitWidth, 180)
                     anchors.verticalCenter: parent.verticalCenter
+                    Behavior on color { ColorAnimation { duration: Theme.animDuration; easing.type: Theme.animEasing } }
                 }
             }
 
@@ -100,6 +102,7 @@ Item {
                         origin.x: 9; origin.y: 9
                         angle: Math.sin(mediaRoot.animPhase) * 6
                     }
+                    Behavior on color { ColorAnimation { duration: Theme.animDuration; easing.type: Theme.animEasing } }
                 }
 
                 Text {
@@ -109,6 +112,7 @@ Item {
                     font.bold: true
                     font.family: Theme.fontFamily
                     anchors.verticalCenter: parent.verticalCenter
+                    Behavior on color { ColorAnimation { duration: Theme.animDuration; easing.type: Theme.animEasing } }
                 }
 
                 // Horizontally aligned blinking dots
@@ -122,6 +126,7 @@ Item {
 
                         // Smooth pulsing opacity with 2*PI frequency
                         opacity: 0.25 + 0.75 * Math.max(0, Math.sin(mediaRoot.animPhase * 2 + index * 0.9))
+                        Behavior on color { ColorAnimation { duration: Theme.animDuration; easing.type: Theme.animEasing } }
                     }
                 }
 

@@ -38,7 +38,7 @@ Row {
 
                 color: {
                     if (delegateRoot.isFocused) return Theme.wsActive;
-                    if (mouseArea.containsMouse) return Qt.tint(Theme.wsEmpty, Qt.rgba(1, 1, 1, 0.28));
+                    if (mouseArea.containsMouse) return Theme.fg;
                     if (delegateRoot.isDisplayed) return Theme.wsDisplayed;
                     if (delegateRoot.isOccupied) return Theme.wsOccupied;
                     return Theme.wsEmpty;
@@ -55,7 +55,10 @@ Row {
                     } 
                 }
                 Behavior on color { 
-                    ColorAnimation { duration: 150 } 
+                    ColorAnimation { 
+                        duration: Theme.animDuration
+                        easing.type: Theme.animEasing
+                    } 
                 }
             }
 

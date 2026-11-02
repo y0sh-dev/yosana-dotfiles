@@ -123,7 +123,7 @@ PanelWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             powerMenuRoot.isOpen = false
-                            Process.exec(["systemctl", "poweroff"])
+                            Quickshell.execDetached(["systemctl", "poweroff"])
                         }
                     }
                 }
@@ -168,7 +168,7 @@ PanelWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             powerMenuRoot.isOpen = false
-                            Process.exec(["systemctl", "reboot"])
+                            Quickshell.execDetached(["systemctl", "reboot"])
                         }
                     }
                 }
@@ -213,7 +213,7 @@ PanelWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             powerMenuRoot.isOpen = false
-                            Process.exec(["systemctl", "suspend"])
+                            Quickshell.execDetached(["systemctl", "suspend"])
                         }
                     }
                 }
@@ -258,7 +258,7 @@ PanelWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             powerMenuRoot.isOpen = false
-                            Process.exec(["hyprlock"])
+                            Quickshell.execDetached(["hyprlock"])
                         }
                     }
                 }
@@ -348,7 +348,7 @@ PanelWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             powerMenuRoot.isOpen = false
-                            Process.exec(["systemctl", "hibernate"])
+                            Quickshell.execDetached(["systemctl", "hibernate"])
                         }
                     }
                 }

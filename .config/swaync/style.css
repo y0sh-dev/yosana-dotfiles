@@ -1,0 +1,203 @@
+@import url("/home/yukkkk1/.cache/wal/colors.css");
+
+/* ==========================================================================
+   SwayNC Theme: Minimal, Quiet & Frosted Glass
+   Designed to blend seamlessly with Hyprland 1size-3passes blur & Pywal palette
+   ========================================================================== */
+
+* {
+  font-family: "FiraCode Nerd Font", sans-serif;
+  transition: all 150ms ease-out;
+}
+
+/* Base transparent root */
+notificationwindow,
+blankwindow {
+  background: transparent;
+}
+
+/* ==========================================================================
+   Control Center Monolith (Floating Frosted Island)
+   ========================================================================== */
+.control-center {
+  background: rgba(15, 15, 25, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: none;
+}
+
+/* Scroll area for notifications */
+.control-center-list {
+  background: transparent;
+}
+
+.control-center-list-placeholder {
+  opacity: 0.45;
+  color: var(--color8, #9098a1);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 40px 0;
+}
+
+/* ==========================================================================
+   Widget: Header / Title ("Notifications" & "Clear")
+   ========================================================================== */
+.widget-title {
+  padding: 4px 8px 12px 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.widget-title > label {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color6, #9BB3D1);
+  letter-spacing: 0.5px;
+}
+
+.widget-title > button {
+  background: transparent;
+  color: var(--color8, #9098a1);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+
+.widget-title > button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--foreground, #cedae6);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* ==========================================================================
+   Widget: Do Not Disturb Switch
+   ========================================================================== */
+.widget-dnd {
+  padding: 8px 8px;
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.widget-dnd > label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--foreground, #cedae6);
+}
+
+.widget-dnd > switch {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  border: none;
+  min-width: 38px;
+  min-height: 20px;
+}
+
+.widget-dnd > switch:checked {
+  background: var(--color5, #748AB2);
+}
+
+.widget-dnd > switch slider {
+  background: var(--foreground, #cedae6);
+  border-radius: 10px;
+  min-width: 16px;
+  min-height: 16px;
+  margin: 2px;
+}
+
+/* ==========================================================================
+   Notification Cards (Both floating popups and list cards)
+   ========================================================================== */
+.notification-row {
+  outline: none;
+  background: transparent;
+  padding: 4px 0;
+}
+
+.notification-row .notification-background {
+  padding: 0;
+}
+
+.notification-row .notification-background .notification {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: none;
+}
+
+.notification-row .notification-background .notification:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* Toast popup window overrides (floating on desktop) */
+.floating-notifications .notification {
+  background: rgba(15, 15, 25, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin: 6px 14px;
+}
+
+/* Typography inside notifications */
+.summary {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--foreground, #cedae6);
+  margin-bottom: 2px;
+}
+
+.body {
+  font-size: 13px;
+  color: var(--color8, #9098a1);
+  line-height: 1.4;
+}
+
+.time {
+  font-size: 11px;
+  color: var(--color8, #9098a1);
+  opacity: 0.65;
+  margin-right: 6px;
+}
+
+/* Individual card Close Button */
+.close-button {
+  background: transparent;
+  color: var(--color8, #9098a1);
+  border: none;
+  border-radius: 100%;
+  min-width: 20px;
+  min-height: 20px;
+  opacity: 0.0; /* Hidden by default for quiet minimalism */
+}
+
+.notification:hover .close-button {
+  opacity: 0.7; /* Gently appears on card hover */
+}
+
+.close-button:hover {
+  opacity: 1.0 !important;
+  color: var(--color3, #A05042);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Action buttons inside notification */
+.notification-action {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: var(--foreground, #cedae6);
+  font-size: 12px;
+  padding: 6px 12px;
+  margin-top: 8px;
+}
+
+.notification-action:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.18);
+}
