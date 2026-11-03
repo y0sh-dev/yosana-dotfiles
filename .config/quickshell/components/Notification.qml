@@ -18,27 +18,40 @@ Item {
         return "󰂚";
     }
 
-    // Refresh swaync notification count and DND state
-    Timer {
-        interval: 3000
+    // Zero-polling event-driven SwayNC stream subscriber (0% idle CPU)
+    Process {
+        id: swayncSubProc
+        command: ["swaync-client", "-s"]
         running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: notifPollProc.running = true
+
+        stdout: SplitParser {
+            splitMarker: "\n"
+            onRead: function(line) {
+                var raw = (line || "").toString().trim();
+                if (!raw) return;
+                try {
+                    var obj = JSON.parse(raw);
+                    if (obj.count !== undefined) notifRoot.unreadCount = obj.count;
+                    if (obj.dnd !== undefined) notifRoot.isDnd = obj.dnd;
+                } catch(e) {
+                    // Ignore non-json frames
+                }
+            }
+        }
+
+        // Auto-reconnect if SwayNC daemon restarts
+        onExited: function(exitCode, exitStatus) {
+            reconnectTimer.restart();
+        }
     }
 
-    Process {
-        id: notifPollProc
-        command: ["bash", "-c", "echo $(swaync-client -c 2>/dev/null || echo 0):$(swaync-client -D 2>/dev/null || echo false)"]
-        stdout: StdioCollector {
-            onDataChanged: {
-                var raw = (data || "").toString().trim();
-                if (!raw) return;
-                var parts = raw.split(":");
-                if (parts.length >= 2) {
-                    notifRoot.unreadCount = parseInt(parts[0]) || 0;
-                    notifRoot.isDnd = (parts[1].trim() === "true");
-                }
+    Timer {
+        id: reconnectTimer
+        interval: 2000
+        repeat: false
+        onTriggered: {
+            if (!swayncSubProc.running) {
+                swayncSubProc.running = true;
             }
         }
     }
@@ -83,7 +96,6 @@ Item {
             } else if (mouse.button === Qt.RightButton) {
                 // Toggle Do-Not-Disturb (DND)
                 Quickshell.execDetached(["swaync-client", "-d"]);
-                notifPollProc.running = true;
             }
         }
     }
