@@ -9,14 +9,13 @@ import "./layers"
 
 ShellRoot {
     HyprlandState { id: hyprlandLogic }
-    TimeService { id: timeService }
 
     TopBar { 
         focusedWs: hyprlandLogic.focusedWs
         displayedWs: hyprlandLogic.displayedWs
         occupiedWs: hyprlandLogic.occupiedWs
         
-        timeText: timeService.shortTime
+        timeText: TimeService.shortTime
         onArchClicked: {
             console.log("Arch Logo clicked")
         }
