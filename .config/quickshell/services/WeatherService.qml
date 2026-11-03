@@ -17,7 +17,7 @@ QtObject {
 
     // Current Weather State
     property string temp: "--"
-    property string desc: "読込中..."
+    property string desc: "Loading..."
     property string icon: "󰖐"
     property string maxTemp: "--"
     property string minTemp: "--"

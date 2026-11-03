@@ -4,14 +4,12 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
 import "../services"
+import "../modules/powermenu"
 
 PanelWindow {
     id: powerMenuRoot
     property bool isOpen: false
     screen: Quickshell.screens[0]
-
-    // Adaptive Resolution Scaling synchronized with Theme SSOT
-    readonly property real uiScale: Theme.uiScale
 
     // Navigation & confirmation state
     property string viewState: "grid" // "grid" or "confirm"
@@ -62,7 +60,7 @@ PanelWindow {
             icon: "󰍃",
             color: Theme.fgSoft,
             desc: "Your current user desktop session will terminate. Press E or Enter to confirm.",
-            cmd: []
+            cmd: ["hyprctl", "dispatch", "hl.dsp.exit()"]
         },
         {
             id: "hibernate",
@@ -218,7 +216,7 @@ PanelWindow {
         var act = pendingAction;
         powerMenuRoot.isOpen = false;
         if (act.id === "logout") {
-            Hyprland.dispatch("exit");
+            Hyprland.dispatch("hl.dsp.exit()");
         } else if (act.cmd && act.cmd.length > 0) {
             Quickshell.execDetached(act.cmd);
         }
@@ -245,13 +243,12 @@ PanelWindow {
     }
 
     // ─── Central Modal Monolith (Grand 16:9 Aspect: 864px x 486px at 1440p) ───
-    // Matching the exact majestic scale of the Calendar Panel (860px x 490px)
     Rectangle {
         id: modal
         anchors.centerIn: parent
-        width: Math.round(864 * powerMenuRoot.uiScale)
-        height: Math.round(486 * powerMenuRoot.uiScale)
-        radius: Math.round(Theme.radiusIsland * powerMenuRoot.uiScale) // ~20px
+        width: Math.round(864 * Theme.uiScale)
+        height: Math.round(486 * Theme.uiScale)
+        radius: Math.round(Theme.radiusIsland * Theme.uiScale) // ~20px
         color: Qt.rgba(0, 0, 0, 0.90) // Pure matte obsidian matching Calendar Monolith
         border.width: 0 // Zero harsh white border lines
 
@@ -263,356 +260,27 @@ PanelWindow {
         // ====================================================================
         // VIEW 1: Grid Action View (Prominent Icons First, Text Second)
         // ====================================================================
-        Item {
-            id: gridView
+        GridView {
             anchors.fill: parent
             visible: powerMenuRoot.viewState === "grid"
             opacity: powerMenuRoot.viewState === "grid" ? 1.0 : 0.0
             Behavior on opacity { NumberAnimation { duration: 150 } }
-
-            ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: Math.round(32 * powerMenuRoot.uiScale)
-                spacing: Math.round(20 * powerMenuRoot.uiScale)
-
-                // Header
-                Column {
-                    Layout.alignment: Qt.AlignHCenter
-                    spacing: Math.round(6 * powerMenuRoot.uiScale)
-
-                    Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: "Power Session"
-                        color: Theme.fgSoft
-                        font.pixelSize: Math.round(22 * powerMenuRoot.uiScale)
-                        font.bold: true
-                        font.family: Theme.fontFamily
-                    }
-
-                    Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: "Select an action or press shortcut key"
-                        color: Theme.subtextDim
-                        font.pixelSize: Math.round(13 * powerMenuRoot.uiScale)
-                        font.family: Theme.fontFamily
-                    }
-                }
-
-                // 3x2 Grid of Actions (Large tiles: ~256px x 124px, Huge prominent icons: 50px)
-                GridLayout {
-                    columns: 3
-                    rowSpacing: Math.round(16 * powerMenuRoot.uiScale)
-                    columnSpacing: Math.round(16 * powerMenuRoot.uiScale)
-                    Layout.alignment: Qt.AlignHCenter
-
-                    Repeater {
-                        model: powerMenuRoot.actions
-
-                        delegate: Rectangle {
-                            id: actionTile
-                            width: Math.round(254 * powerMenuRoot.uiScale)
-                            height: Math.round(124 * powerMenuRoot.uiScale)
-                            radius: Math.round(16 * powerMenuRoot.uiScale)
-
-                            // Translucent matte surface
-                            color: tileMouse.containsMouse
-                                ? Qt.rgba(modelData.color.r, modelData.color.g, modelData.color.b, 0.18)
-                                : Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.45)
-
-                            border.color: tileMouse.containsMouse
-                                ? Qt.rgba(modelData.color.r, modelData.color.g, modelData.color.b, 0.45)
-                                : Qt.rgba(1, 1, 1, 0.04)
-                            border.width: 1
-
-                            Behavior on color { ColorAnimation { duration: 120 } }
-                            Behavior on border.color { ColorAnimation { duration: 120 } }
-
-                            Column {
-                                anchors.centerIn: parent
-                                spacing: Math.round(10 * powerMenuRoot.uiScale)
-
-                                // Huge Iconic Lead: 50px (Instant visual recognition without cognitive friction)
-                                Text {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: modelData.icon
-                                    color: tileMouse.containsMouse ? modelData.color : (modelData.id === "shutdown" ? Theme.urgent : (modelData.id === "reboot" ? Theme.accent : Theme.fgSoft))
-                                    font.pixelSize: Math.round(50 * powerMenuRoot.uiScale)
-                                    font.family: Theme.fontFamily
-                                    Behavior on color { ColorAnimation { duration: 120 } }
-                                }
-
-                                // Secondary Label with Shortcut Hint: e.g. Shutdown (U)
-                                Row {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    spacing: Math.round(6 * powerMenuRoot.uiScale)
-
-                                    Text {
-                                        text: modelData.label
-                                        color: tileMouse.containsMouse ? modelData.color : Theme.fgSoft
-                                        font.pixelSize: Math.round(15 * powerMenuRoot.uiScale)
-                                        font.bold: true
-                                        font.family: Theme.fontFamily
-                                        Behavior on color { ColorAnimation { duration: 120 } }
-                                    }
-
-                                    Text {
-                                        text: "(" + modelData.key + ")"
-                                        color: tileMouse.containsMouse ? modelData.color : Theme.subtextDim
-                                        font.pixelSize: Math.round(13 * powerMenuRoot.uiScale)
-                                        font.bold: true
-                                        font.family: Theme.fontFamily
-                                        opacity: 0.85
-                                        Behavior on color { ColorAnimation { duration: 120 } }
-                                    }
-                                }
-                            }
-
-                            MouseArea {
-                                id: tileMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: powerMenuRoot.requestConfirm(modelData)
-                            }
-                        }
-                    }
-                }
-
-                // Footer Cancel Capsule
-                Rectangle {
-                    Layout.alignment: Qt.AlignHCenter
-                    implicitWidth: cancelGridRow.implicitWidth + Math.round(32 * powerMenuRoot.uiScale)
-                    implicitHeight: Math.round(36 * powerMenuRoot.uiScale)
-                    radius: Math.round(18 * powerMenuRoot.uiScale)
-                    color: cancelGridMouse.containsMouse ? Theme.surfaceHover : "transparent"
-                    border.color: cancelGridMouse.containsMouse ? Theme.accent : Qt.rgba(1, 1, 1, 0.08)
-                    border.width: 1
-
-                    Row {
-                        id: cancelGridRow
-                        anchors.centerIn: parent
-                        spacing: Math.round(8 * powerMenuRoot.uiScale)
-
-                        Text {
-                            text: "Cancel"
-                            color: cancelGridMouse.containsMouse ? Theme.accent : Theme.subtextDim
-                            font.pixelSize: Math.round(14 * powerMenuRoot.uiScale)
-                            font.bold: true
-                            font.family: Theme.fontFamily
-                            anchors.verticalCenter: parent.verticalCenter
-                            Behavior on color { ColorAnimation { duration: 120 } }
-                        }
-
-                        Text {
-                            text: "(ESC)"
-                            color: Theme.subtextDim
-                            font.pixelSize: Math.round(12 * powerMenuRoot.uiScale)
-                            font.family: Theme.fontFamily
-                            anchors.verticalCenter: parent.verticalCenter
-                            opacity: 0.7
-                        }
-                    }
-
-                    MouseArea {
-                        id: cancelGridMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: powerMenuRoot.isOpen = false
-                    }
-                }
-            }
+            actions: powerMenuRoot.actions
+            onActionSelected: function(act) { powerMenuRoot.requestConfirm(act); }
+            onCancelRequested: { powerMenuRoot.isOpen = false; }
         }
 
         // ====================================================================
         // VIEW 2: Safe Confirmation View (Two-Step Confirmation Gate)
-        // High-contrast, immediately readable buttons without hovering
         // ====================================================================
-        Item {
-            id: confirmView
+        ConfirmView {
             anchors.fill: parent
             visible: powerMenuRoot.viewState === "confirm"
             opacity: powerMenuRoot.viewState === "confirm" ? 1.0 : 0.0
             Behavior on opacity { NumberAnimation { duration: 150 } }
-
-            ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: Math.round(36 * powerMenuRoot.uiScale)
-                spacing: Math.round(24 * powerMenuRoot.uiScale)
-
-                // Header Message
-                Column {
-                    Layout.alignment: Qt.AlignHCenter
-                    spacing: Math.round(8 * powerMenuRoot.uiScale)
-
-                    Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: powerMenuRoot.pendingAction ? ("Really want to " + powerMenuRoot.pendingAction.label.toLowerCase() + "?") : ""
-                        color: Theme.fgSoft
-                        font.pixelSize: Math.round(24 * powerMenuRoot.uiScale)
-                        font.bold: true
-                        font.family: Theme.fontFamily
-                    }
-
-                    Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: powerMenuRoot.pendingAction ? powerMenuRoot.pendingAction.desc : ""
-                        color: Theme.subtextDim
-                        font.pixelSize: Math.round(14 * powerMenuRoot.uiScale)
-                        font.family: Theme.fontFamily
-                    }
-                }
-
-                Item { Layout.fillHeight: true }
-
-                // Split Center Content: Large Iconic Badge (Left) + High-Contrast Horizontal Buttons (Right)
-                Row {
-                    Layout.alignment: Qt.AlignHCenter
-                    spacing: Math.round(36 * powerMenuRoot.uiScale)
-
-                    // Left: Large Glowing Iconic Badge (140px x 140px, 64px icon)
-                    Rectangle {
-                        width: Math.round(140 * powerMenuRoot.uiScale)
-                        height: Math.round(140 * powerMenuRoot.uiScale)
-                        radius: Math.round(24 * powerMenuRoot.uiScale)
-                        color: powerMenuRoot.pendingAction
-                            ? Qt.rgba(powerMenuRoot.pendingAction.color.r, powerMenuRoot.pendingAction.color.g, powerMenuRoot.pendingAction.color.b, 0.16)
-                            : "transparent"
-                        border.color: powerMenuRoot.pendingAction
-                            ? Qt.rgba(powerMenuRoot.pendingAction.color.r, powerMenuRoot.pendingAction.color.g, powerMenuRoot.pendingAction.color.b, 0.40)
-                            : "transparent"
-                        border.width: 1.5
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: powerMenuRoot.pendingAction ? powerMenuRoot.pendingAction.icon : ""
-                            color: powerMenuRoot.pendingAction ? powerMenuRoot.pendingAction.color : Theme.fgSoft
-                            font.pixelSize: Math.round(64 * powerMenuRoot.uiScale)
-                            font.family: Theme.fontFamily
-                        }
-                    }
-
-                    // Right: Horizontal Action Pair [ Cancel (ESC) ] [ Action (Key / ↵) ]
-                    Row {
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: Math.round(20 * powerMenuRoot.uiScale)
-
-                        // ─── Button 1: Cancel (ESC) ───
-                        Rectangle {
-                            implicitWidth: Math.round(200 * powerMenuRoot.uiScale)
-                            implicitHeight: Math.round(64 * powerMenuRoot.uiScale)
-                            radius: Math.round(16 * powerMenuRoot.uiScale)
-                            color: cancelBtnMouse.containsMouse
-                                ? Theme.surfaceHover
-                                : Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.55)
-                            border.color: cancelBtnMouse.containsMouse ? Theme.accent : Qt.rgba(1, 1, 1, 0.12)
-                            border.width: 1
-
-                            Behavior on color { ColorAnimation { duration: 120 } }
-                            Behavior on border.color { ColorAnimation { duration: 120 } }
-
-                            Row {
-                                anchors.centerIn: parent
-                                spacing: Math.round(10 * powerMenuRoot.uiScale)
-
-                                Text {
-                                    text: "Cancel"
-                                    color: cancelBtnMouse.containsMouse ? Theme.accent : "#ffffff"
-                                    font.pixelSize: Math.round(16 * powerMenuRoot.uiScale)
-                                    font.bold: true
-                                    font.family: Theme.fontFamily
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-
-                                Text {
-                                    text: "(ESC)"
-                                    color: Theme.subtextDim
-                                    font.pixelSize: Math.round(13 * powerMenuRoot.uiScale)
-                                    font.bold: true
-                                    font.family: Theme.fontFamily
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    opacity: 0.85
-                                }
-                            }
-
-                            MouseArea {
-                                id: cancelBtnMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: powerMenuRoot.cancelConfirm()
-                            }
-                        }
-
-                        // ─── Button 2: Action [Shutdown (U / ↵)] - High Contrast Without Hovering ───
-                        Rectangle {
-                            id: confirmBtn
-                            implicitWidth: Math.round(230 * powerMenuRoot.uiScale)
-                            implicitHeight: Math.round(64 * powerMenuRoot.uiScale)
-                            radius: Math.round(16 * powerMenuRoot.uiScale)
-
-                            property color actionColor: powerMenuRoot.pendingAction ? powerMenuRoot.pendingAction.color : Theme.accent
-
-                            // High-contrast semi-solid fill even without hovering for effortless instant legibility
-                            color: confirmBtnMouse.containsMouse
-                                ? actionColor
-                                : Qt.rgba(actionColor.r, actionColor.g, actionColor.b, 0.32)
-
-                            border.color: actionColor
-                            border.width: 1.5
-
-                            Behavior on color { ColorAnimation { duration: 120 } }
-
-                            Row {
-                                anchors.centerIn: parent
-                                spacing: Math.round(10 * powerMenuRoot.uiScale)
-
-                                Text {
-                                    text: powerMenuRoot.pendingAction ? powerMenuRoot.pendingAction.label : "Confirm"
-                                    // High contrast pure white text normally, sharp black on solid hover
-                                    color: confirmBtnMouse.containsMouse ? "#000000" : "#ffffff"
-                                    font.pixelSize: Math.round(16 * powerMenuRoot.uiScale)
-                                    font.bold: true
-                                    font.family: Theme.fontFamily
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-
-                                Text {
-                                    text: powerMenuRoot.pendingAction ? ("(" + powerMenuRoot.pendingAction.key + " / ↵)") : "(↵)"
-                                    color: confirmBtnMouse.containsMouse ? "#000000" : "#ffffff"
-                                    font.pixelSize: Math.round(13 * powerMenuRoot.uiScale)
-                                    font.bold: true
-                                    font.family: Theme.fontFamily
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    opacity: confirmBtnMouse.containsMouse ? 1.0 : 0.85
-                                }
-                            }
-
-                            MouseArea {
-                                id: confirmBtnMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: powerMenuRoot.executePending()
-                            }
-                        }
-                    }
-                }
-
-                Item { Layout.fillHeight: true }
-
-                // Micro Key Instruction
-                Text {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: powerMenuRoot.pendingAction
-                        ? ("esc to cancel  •  " + powerMenuRoot.pendingAction.key.toLowerCase() + " or enter to confirm")
-                        : "esc to cancel  •  enter to confirm"
-                    color: Theme.subtextDim
-                    font.pixelSize: Math.round(12 * powerMenuRoot.uiScale)
-                    font.family: Theme.fontFamily
-                    opacity: 0.65
-                }
-            }
+            pendingAction: powerMenuRoot.pendingAction
+            onConfirmed: powerMenuRoot.executePending()
+            onCancelled: powerMenuRoot.cancelConfirm()
         }
     }
 }

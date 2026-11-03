@@ -26,44 +26,43 @@ Item {
         return "󰤯";
     }
 
-    // Periodically fetch connection & RSSI info via iwd
-    Timer {
-        interval: 5000
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: fetchNetInfo()
-    }
-
+    // Zero-polling event-driven Network stream subscriber (0% idle CPU)
     Process {
-        id: netProc
-        command: ["bash", "-c", "cat /sys/class/net/en*/operstate 2>/dev/null | grep -q 'up' && echo 'WIRED' || iwctl station wlan0 show | awk '/Connected network/ {print $3} /^[[:space:]]+RSSI/ {print $2}'"]
+        id: netSubProc
+        command: ["python3", "-u", "/home/yukkkk1/.config/quickshell/scripts/net_monitor.py"]
+        running: true
 
-        stdout: StdioCollector {
-            onDataChanged: {
-                var rawStr = (data || "").toString().trim();
-                if (rawStr.length === 0) return;
-                var lines = rawStr.split("\n");
-                if (lines[0] === "WIRED") {
-                    networkRoot.isWired = true;
-                    networkRoot.isConnected = true;
-                    networkRoot.ssid = "Ethernet";
-                } else if (lines.length >= 2 && lines[0].length > 0) {
-                    networkRoot.isWired = false;
-                    networkRoot.ssid = lines[0].trim();
-                    networkRoot.rssi = parseInt(lines[1]) || -70;
-                } else {
-                    networkRoot.isWired = false;
-                    networkRoot.ssid = "";
-                    networkRoot.rssi = -100;
+        stdout: SplitParser {
+            splitMarker: "\n"
+            onRead: function(line) {
+                var raw = (line || "").toString().trim();
+                if (!raw) return;
+                try {
+                    var obj = JSON.parse(raw);
+                    if (obj.wired !== undefined) networkRoot.isWired = obj.wired;
+                    if (obj.connected !== undefined) networkRoot.isConnected = obj.connected;
+                    if (obj.ssid !== undefined) networkRoot.ssid = obj.ssid;
+                    if (obj.rssi !== undefined) networkRoot.rssi = obj.rssi;
+                } catch(e) {
+                    // Ignore non-json frames
                 }
             }
         }
+
+        // Auto-reconnect if process exits
+        onExited: function(exitCode, exitStatus) {
+            reconnectTimer.restart();
+        }
     }
 
-    function fetchNetInfo() {
-        if (!netProc.running) {
-            netProc.running = true;
+    Timer {
+        id: reconnectTimer
+        interval: 3000
+        repeat: false
+        onTriggered: {
+            if (!netSubProc.running) {
+                netSubProc.running = true;
+            }
         }
     }
 

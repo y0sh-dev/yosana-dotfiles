@@ -694,10 +694,10 @@ WMO_MAP = {
 }
 
 WIND_DIRECTIONS = [
-    "北", "北北東", "北東", "東北東",
-    "東", "東南東", "南東", "南南東",
-    "南", "南南西", "南西", "西南西",
-    "西", "西北西", "北西", "北北西"
+    "N", "NNE", "NE", "ENE",
+    "E", "ESE", "SE", "SSE",
+    "S", "SSW", "SW", "WSW",
+    "W", "WNW", "NW", "NNW"
 ]
 
 def deg_to_compass(deg):
@@ -706,11 +706,83 @@ def deg_to_compass(deg):
     val = int((float(deg) + 11.25) / 22.5) % 16
     return WIND_DIRECTIONS[val]
 
-def export_locations():
-    """Exports structured locations JSON for fast QML consumption."""
-    os.makedirs(CONFIG_DIR, exist_ok=True)
-    with open(LOCATIONS_FILE, "w", encoding="utf-8") as f:
-        json.dump(LOCATIONS, f, ensure_ascii=False, indent=2)
+def atomic_write_json(filepath, data, permissions=0o644):
+    """Safely writes JSON data atomically via temporary file and atomic rename."""
+    dirname = os.path.dirname(filepath)
+    os.makedirs(dirname, exist_ok=True)
+    tmp_path = f"{filepath}.tmp.{os.getpid()}"
+    try:
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        os.chmod(tmp_path, permissions)
+        os.replace(tmp_path, filepath)
+    except Exception as e:
+        if os.path.exists(tmp_path):
+            try:
+                os.remove(tmp_path)
+            except OSError:
+                pass
+        raise e
+
+def export_locations(force=False):
+    """Exports structured locations JSON for fast QML consumption, skipping redundant I/O."""
+    if not force and os.path.isfile(LOCATIONS_FILE) and os.path.getsize(LOCATIONS_FILE) > 500:
+        return
+    atomic_write_json(LOCATIONS_FILE, LOCATIONS)
+
+def validate_city_data(city_data):
+    """Validates and sanitizes city metadata (supports domestic & global cities)."""
+    if not isinstance(city_data, dict):
+        raise ValueError("city_data must be a dict")
+    name = str(city_data.get("name", "東京 (23区)")).strip()[:50]
+    romaji = str(city_data.get("romaji", "Tokyo")).strip()[:50]
+    pref = str(city_data.get("pref", "東京都")).strip()[:50]
+    country = str(city_data.get("country", "JP")).strip()[:10]
+    timezone = str(city_data.get("timezone", "auto")).strip()[:50]
+
+    try:
+        lat = float(city_data.get("lat", 35.6895))
+        lon = float(city_data.get("lon", 139.6917))
+    except (TypeError, ValueError):
+        lat, lon = 35.6895, 139.6917
+
+    lat = max(-90.0, min(90.0, lat))
+    lon = max(-180.0, min(180.0, lon))
+
+    return {
+        "name": name,
+        "romaji": romaji,
+        "pref": pref,
+        "country": country,
+        "timezone": timezone,
+        "lat": round(lat, 4),
+        "lon": round(lon, 4)
+    }
+
+def search_global_cities(query):
+    """Searches worldwide cities using Open-Meteo Geocoding API for global expansion."""
+    import urllib.parse
+    q = urllib.parse.quote(query.strip())
+    url = f"https://geocoding-api.open-meteo.com/v1/search?name={q}&count=10&language=en&format=json"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Antigravity-Quickshell-Weather/1.0"})
+        with urllib.request.urlopen(req, timeout=5) as response:
+            raw = json.loads(response.read().decode("utf-8"))
+            results = []
+            for r in raw.get("results", []):
+                results.append({
+                    "name": r.get("name"),
+                    "romaji": r.get("name"),
+                    "pref": r.get("admin1", r.get("country", "")),
+                    "country": r.get("country_code", "GLOBAL"),
+                    "timezone": r.get("timezone", "auto"),
+                    "lat": round(r.get("latitude", 0), 4),
+                    "lon": round(r.get("longitude", 0), 4)
+                })
+            return results
+    except Exception as e:
+        print(f"Error searching global cities: {e}", file=sys.stderr)
+        return []
 
 def load_config():
     """Loads active location from config, defaulting to Tokyo."""
@@ -718,6 +790,8 @@ def load_config():
         "name": "東京 (23区)",
         "romaji": "Tokyo",
         "pref": "東京都",
+        "country": "JP",
+        "timezone": "Asia/Tokyo",
         "lat": 35.6895,
         "lon": 139.6917
     }
@@ -725,37 +799,39 @@ def load_config():
         try:
             with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                if "lat" in data and "lon" in data:
-                    return data
+                return validate_city_data(data)
         except Exception:
             pass
     return default_config
 
 def save_config(city_data):
-    """Saves selected city to config file."""
-    os.makedirs(CONFIG_DIR, exist_ok=True)
-    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
-        json.dump(city_data, f, ensure_ascii=False, indent=2)
+    """Saves validated city to config file atomically."""
+    clean_data = validate_city_data(city_data)
+    atomic_write_json(CONFIG_FILE, clean_data, permissions=0o600)
 
 def fetch_weather(city_data=None):
     """Fetches high-accuracy JMA model forecast from Open-Meteo API."""
     if city_data is None:
         city_data = load_config()
+    else:
+        city_data = validate_city_data(city_data)
 
-    lat = city_data.get("lat", 35.6895)
-    lon = city_data.get("lon", 139.6917)
+    lat = city_data["lat"]
+    lon = city_data["lon"]
+    import urllib.parse
+    tz = urllib.parse.quote(city_data.get("timezone", "auto"))
 
     url = (
         f"https://api.open-meteo.com/v1/forecast?"
         f"latitude={lat}&longitude={lon}&"
         f"current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m&"
         f"daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant&"
-        f"timezone=Asia%2FTokyo"
+        f"timezone={tz}"
     )
 
     req = urllib.request.Request(url, headers={"User-Agent": "Antigravity-Quickshell-Weather/1.0"})
     try:
-        with urllib.request.urlopen(req, timeout=6) as response:
+        with urllib.request.urlopen(req, timeout=5) as response:
             raw_data = json.loads(response.read().decode("utf-8"))
     except Exception as e:
         print(f"Error fetching weather: {e}", file=sys.stderr)
@@ -833,26 +909,33 @@ def fetch_weather(city_data=None):
         "updatedAt": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
 
-    os.makedirs(CONFIG_DIR, exist_ok=True)
-    with open(CACHE_FILE, "w", encoding="utf-8") as f:
-        json.dump(cached_payload, f, ensure_ascii=False, indent=2)
-
+    atomic_write_json(CACHE_FILE, cached_payload)
     return True
 
 def main():
     if len(sys.argv) > 1:
         cmd = sys.argv[1]
         if cmd == "--export-locations":
-            export_locations()
+            export_locations(force=True)
             print(f"Exported locations to {LOCATIONS_FILE}")
             return
         elif cmd == "--set-city":
             if len(sys.argv) > 2:
-                city_json = sys.argv[2]
-                city_data = json.loads(city_json)
-                save_config(city_data)
-                fetch_weather(city_data)
-                print(f"Set city to {city_data.get('name')} and refreshed cache.")
+                try:
+                    city_json = sys.argv[2]
+                    city_data = json.loads(city_json)
+                    save_config(city_data)
+                    fetch_weather(city_data)
+                    print(f"Set city to {city_data.get('name')} and refreshed cache.")
+                except Exception as e:
+                    print(f"Error setting city: {e}", file=sys.stderr)
+                    sys.exit(1)
+                return
+        elif cmd == "--search":
+            if len(sys.argv) > 2:
+                q = sys.argv[2]
+                res = search_global_cities(q)
+                print(json.dumps(res, ensure_ascii=False, indent=2))
                 return
         elif cmd == "--fetch":
             export_locations()
