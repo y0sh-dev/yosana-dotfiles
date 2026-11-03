@@ -4,7 +4,8 @@
 - Global `~/.agent-protocols/CARD.md` is the authoritative safety set. On conflict, follow the more restrictive rule and report it.
 - **Rule 1 (Explicit Staging Only)**: NEVER execute blanket staging commands such as `yadm add .` or `yadm add -A` across `$HOME`. Stage only explicitly targeted configuration files.
 - **Rule 2 (Secrets & Privacy Boundary)**: NEVER track sensitive credentials, private keys, authentication tokens, or personal data directories (e.g. `.ssh/`, `.gnupg/`, `.git-credentials`, `Documents/`, `Pictures/`). Refer to `.config/yadm/ignore`.
-- **Rule 3 (Branch Protection)**: NEVER commit or push directly to `main`. Always create and operate within dedicated topic branches (e.g. `feat/quickshell-*`). Pre-Commit Deliberation Gate applies to all commits.
+- **Rule 3 (Branch Protection & Workflow Flexibility)**: NEVER commit or push directly to `main`. Always create and operate within dedicated topic branches (e.g. `feat/quickshell-*`).
+- **Rule 3.1 (Boss Exemption / Dotfiles Prerogative)**: By decree of the BIG BOSS (user), dotfiles management adheres to a relaxed and pragmatic workflow. Granularity may be adjusted flexibly, and automated push/PR creation on topic branches is explicitly pre-approved without requiring rigid step-by-step gate stops for every minor action.
 - **Rule 4 (Scope Isolation)**: This repository manages user configuration and rice components (with primary active focus on `.config/quickshell`). Any standalone programs, tools, or custom services must be developed in separated isolated workspaces.
 - **Language**: Deliverables (code, comments, commits, PRs, docs) strictly in English. Human interaction strictly in Japanese.
 
