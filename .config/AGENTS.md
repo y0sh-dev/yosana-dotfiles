@@ -14,6 +14,14 @@
     4. `refactor` / `chore` (Deprecation): Deletion and retirement of obsolete legacy files (e.g. `VolumePopup.qml`).
     5. `docs`: Protocol, instruction, or task list updates (e.g. `AGENTS.md`).
   - *Boss Prerogative Clarification*: While push/PR creation on topic branches is pre-approved without rigid deliberation gate pauses, commit granularity MUST NEVER be relaxed. Always commit finely, incrementally, and atomically.
+- **Rule 3.2 (Automated PR Creation & Lean Dotfiles Policy)**:
+  - When opening a Pull Request for dotfiles via `gh`, bind yadm's git tree via `GIT_DIR=~/.local/share/yadm/repo.git GIT_WORK_TREE=$HOME gh pr create` (or specify `-R y0sh-dev/yosana-dotfiles`).
+  - **Lean PR Description**: Dotfiles PR descriptions must remain strictly minimal and zero-boilerplate. Never write lengthy changelog templates or verbose essays. Follow this simple shape:
+    ```markdown
+    ## Summary
+    - <Bullet points of key changes>
+    ```
+    *Core principle: Just enough context so the author in the future immediately understands what this PR was for at a glance.*
 - **Rule 4 (Scope Isolation)**: This repository manages user configuration and rice components (with primary active focus on `.config/quickshell`). Any standalone programs, tools, or custom services must be developed in separated isolated workspaces.
 - **Rule 5 (Experimentation & Verification Space Unification)**:
   - All test scripts, benchmarks, PoC artifacts, and verification codes MUST strictly reside in only two designated spaces:
