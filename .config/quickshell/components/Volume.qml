@@ -6,6 +6,8 @@ import "../services"
 Item {
     id: volumeRoot
 
+    signal clicked()
+
     readonly property var sink: Pipewire.defaultAudioSink
     readonly property real volume: sink && sink.audio ? sink.audio.volume : 0.0
     readonly property bool muted: sink && sink.audio ? sink.audio.muted : false
@@ -74,11 +76,16 @@ Item {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
 
-        // Toggle mute on click (Mute / Undo)
-        onClicked: {
-            if (volumeRoot.sink && volumeRoot.sink.audio) {
-                volumeRoot.sink.audio.muted = !volumeRoot.sink.audio.muted;
+        // Left Click: Open/Close AudioPanel, Right Click: Toggle Mute
+        onClicked: (mouse) => {
+            if (mouse.button === Qt.RightButton) {
+                if (volumeRoot.sink && volumeRoot.sink.audio) {
+                    volumeRoot.sink.audio.muted = !volumeRoot.sink.audio.muted;
+                }
+            } else {
+                volumeRoot.clicked();
             }
         }
 

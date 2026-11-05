@@ -7,6 +7,11 @@
 - **Rule 3 (Branch Protection & Workflow Flexibility)**: NEVER commit or push directly to `main`. Always create and operate within dedicated topic branches (e.g. `feat/quickshell-*`).
 - **Rule 3.1 (Boss Exemption / Dotfiles Prerogative)**: By decree of the BIG BOSS (user), dotfiles management adheres to a relaxed and pragmatic workflow. Granularity may be adjusted flexibly, and automated push/PR creation on topic branches is explicitly pre-approved without requiring rigid step-by-step gate stops for every minor action.
 - **Rule 4 (Scope Isolation)**: This repository manages user configuration and rice components (with primary active focus on `.config/quickshell`). Any standalone programs, tools, or custom services must be developed in separated isolated workspaces.
+- **Rule 5 (Experimentation & Verification Space Unification)**:
+  - All test scripts, benchmarks, PoC artifacts, and verification codes MUST strictly reside in only two designated spaces:
+    1. **`~/Documents/Projects/Trialspace/{project_name}/...`**: For persistent experimental projects, multi-file PoCs, and structured research. Hierarchical folder separation per project/topic is mandatory (no flat clutter).
+    2. **`/tmp/{topic}/...`**: For ephemeral, disposable test scripts, one-off runtime verifications, and intermediate payload handoffs (e.g. `/tmp/my-defender/`). Always organize under a dedicated subdirectory to maintain a tidy root `/tmp`.
+  - **Prohibition of Stray Scratch Directories**: NEVER create test files, scratch scripts, or ad-hoc verification artifacts in tool-specific hidden directories (such as `<appDataDir>/brain/.../scratch/`, random dotdirs, or scattered home folders). Keep all experimental traces unified and predictable.
 - **Language**: Deliverables (code, comments, commits, PRs, docs) strictly in English. Human interaction strictly in Japanese.
 
 ## 1. First 5 Minutes (Immediate Verification)
@@ -28,6 +33,10 @@
   - `components/`: Modular UI widgets (Workspaces, Clock, etc.).
   - `services/`: State collectors and backend listeners (HyprlandState, TimeService, etc.).
 - **Related Rice Configs**: `.config/hypr/`, `.config/kitty/`, `.config/eww/` (reference/legacy).
+- **Designated Experimentation Spaces**:
+  - `~/Documents/Projects/Trialspace/{project}/`: Persistent playgrounds, PoCs, and structured benchmarks (strict hierarchy).
+  - `/tmp/{topic}/`: Ephemeral test benches, disposable scripts, and payload handoffs.
+  - *Hidden tool scratchpads (e.g. `brain/*/scratch/`) are strictly prohibited.*
 
 ## 4. Key Verification Commands (Fluid & Modular)
 Verification commands are maintained dynamically based on active work targets:

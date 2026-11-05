@@ -26,6 +26,14 @@ ShellRoot {
             calendarPopup.isOpen = !calendarPopup.isOpen
             if (calendarPopup.isOpen) {
                 powerMenu.isOpen = false
+                audioPanel.isOpen = false
+            }
+        }
+        onVolumeClicked: {
+            audioPanel.isOpen = !audioPanel.isOpen
+            if (audioPanel.isOpen) {
+                calendarPopup.isOpen = false
+                powerMenu.isOpen = false
             }
         }
         onNetworkClicked: {
@@ -35,12 +43,17 @@ ShellRoot {
             powerMenu.isOpen = !powerMenu.isOpen
             if (powerMenu.isOpen) {
                 calendarPopup.isOpen = false
+                audioPanel.isOpen = false
             }
         }
     }
 
     CalendarPopup {
         id: calendarPopup
+    }
+
+    AudioPanel {
+        id: audioPanel
     }
 
     PowerMenu {
