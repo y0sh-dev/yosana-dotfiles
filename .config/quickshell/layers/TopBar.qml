@@ -16,6 +16,7 @@ PanelWindow {
     signal archClicked()
     signal menuClicked()
     signal clockClicked()
+    signal volumeClicked()
     signal networkClicked()
     signal powerClicked()
 
@@ -198,7 +199,9 @@ PanelWindow {
                     // SwayNC Notification Indicator (Left of volume)
                     Notification {}
 
-                    Volume {}
+                    Volume {
+                        onClicked: barRoot.volumeClicked()
+                    }
 
                     Network {
                         onClicked: barRoot.networkClicked()

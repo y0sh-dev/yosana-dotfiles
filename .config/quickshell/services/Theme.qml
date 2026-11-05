@@ -37,6 +37,7 @@ QtObject {
     property color targetSurface: "#0e1117"
     property color targetBorder: "#252b38"
     property color targetUrgent: "#a05042"
+    property color targetWarning: "#d19a66"
     property color targetSun: "#d9544d" // Red for Sunday (color9 / color1)
     property color targetSat: "#5e81ac" // Blue for Saturday (color12 / color4)
 
@@ -61,6 +62,8 @@ QtObject {
     readonly property color accent: isGridDip ? dipAccent : targetAccent
     readonly property color border: isGridDip ? dipBorder : targetBorder
     readonly property color urgent: isGridDip ? dipUrgent : targetUrgent
+    readonly property color warning: isGridDip ? dipUrgent : targetWarning
+    readonly property color bgDark: targetBg
     readonly property color colorSun: isGridDip ? dipUrgent : targetSun
     readonly property color colorSat: isGridDip ? dipAccent : targetSat
     readonly property color tempHot: isGridDip ? dipUrgent : "#f07178" // Vivid coral-red clearly visible in dark room
@@ -77,6 +80,7 @@ QtObject {
     property int islandPaddingH: 20
     property int islandPaddingV: 10
     property int radiusIsland: 20
+    property int radiusWindow: 14
     property int radiusPill: 10
     property int radiusSmall: 6
     property int wsFontSize: 16
@@ -138,7 +142,8 @@ QtObject {
                 if (c.color0) theme.targetSurface = c.color0;
                 if (c.color4) theme.targetAccent = c.color4;
                 if (c.color8) theme.targetSubtext = c.color8;
-                theme.targetUrgent = c.color1 || c.color3 || "#a05042";
+                theme.targetUrgent = c.color1 || "#a05042";
+                theme.targetWarning = c.color3 || "#d19a66";
                 theme.targetSun = c.color9 || c.color1 || "#d9544d";
                 theme.targetSat = c.color12 || c.color4 || "#5e81ac";
             }

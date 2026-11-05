@@ -4,9 +4,22 @@
 - Global `~/.agent-protocols/CARD.md` is the authoritative safety set. On conflict, follow the more restrictive rule and report it.
 - **Rule 1 (Explicit Staging Only)**: NEVER execute blanket staging commands such as `yadm add .` or `yadm add -A` across `$HOME`. Stage only explicitly targeted configuration files.
 - **Rule 2 (Secrets & Privacy Boundary)**: NEVER track sensitive credentials, private keys, authentication tokens, or personal data directories (e.g. `.ssh/`, `.gnupg/`, `.git-credentials`, `Documents/`, `Pictures/`). Refer to `.config/yadm/ignore`.
-- **Rule 3 (Branch Protection & Workflow Flexibility)**: NEVER commit or push directly to `main`. Always create and operate within dedicated topic branches (e.g. `feat/quickshell-*`).
-- **Rule 3.1 (Boss Exemption / Dotfiles Prerogative)**: By decree of the BIG BOSS (user), dotfiles management adheres to a relaxed and pragmatic workflow. Granularity may be adjusted flexibly, and automated push/PR creation on topic branches is explicitly pre-approved without requiring rigid step-by-step gate stops for every minor action.
+- **Rule 3 (Branch Protection & Topic Branch Operations)**: NEVER commit or push directly to `main`. Always create and operate within dedicated topic branches (e.g. `feat/quickshell-*`).
+- **Rule 3.1 (Atomic Commit Granularity & Concern Separation)**:
+  - NEVER bundle multifaceted changes into a single monolithic ("kitchen-sink") commit.
+  - Commits MUST strictly adhere to `~/.agent-protocols/workflow/commit_granularity.md` and be split into logical, fine-grained atomic units by concern:
+    1. `style` / `theme`: Design tokens, colors, dimensional properties (e.g. `Theme.qml`).
+    2. `config` / `system`: Compositor rules, daemon bindings (e.g. `windowrule.lua`).
+    3. `feat` / `refactor` (Core Component): Primary widget or panel implementation (e.g. `AudioPanel.qml`, `modules/audio/`).
+    4. `refactor` / `chore` (Deprecation): Deletion and retirement of obsolete legacy files (e.g. `VolumePopup.qml`).
+    5. `docs`: Protocol, instruction, or task list updates (e.g. `AGENTS.md`).
+  - *Boss Prerogative Clarification*: While push/PR creation on topic branches is pre-approved without rigid deliberation gate pauses, commit granularity MUST NEVER be relaxed. Always commit finely, incrementally, and atomically.
 - **Rule 4 (Scope Isolation)**: This repository manages user configuration and rice components (with primary active focus on `.config/quickshell`). Any standalone programs, tools, or custom services must be developed in separated isolated workspaces.
+- **Rule 5 (Experimentation & Verification Space Unification)**:
+  - All test scripts, benchmarks, PoC artifacts, and verification codes MUST strictly reside in only two designated spaces:
+    1. **`~/Documents/Projects/Trialspace/{project_name}/...`**: For persistent experimental projects, multi-file PoCs, and structured research. Hierarchical folder separation per project/topic is mandatory (no flat clutter).
+    2. **`/tmp/{topic}/...`**: For ephemeral, disposable test scripts, one-off runtime verifications, and intermediate payload handoffs (e.g. `/tmp/my-defender/`). Always organize under a dedicated subdirectory to maintain a tidy root `/tmp`.
+  - **Prohibition of Stray Scratch Directories**: NEVER create test files, scratch scripts, or ad-hoc verification artifacts in tool-specific hidden directories (such as `<appDataDir>/brain/.../scratch/`, random dotdirs, or scattered home folders). Keep all experimental traces unified and predictable.
 - **Language**: Deliverables (code, comments, commits, PRs, docs) strictly in English. Human interaction strictly in Japanese.
 
 ## 1. First 5 Minutes (Immediate Verification)
@@ -28,6 +41,10 @@
   - `components/`: Modular UI widgets (Workspaces, Clock, etc.).
   - `services/`: State collectors and backend listeners (HyprlandState, TimeService, etc.).
 - **Related Rice Configs**: `.config/hypr/`, `.config/kitty/`, `.config/eww/` (reference/legacy).
+- **Designated Experimentation Spaces**:
+  - `~/Documents/Projects/Trialspace/{project}/`: Persistent playgrounds, PoCs, and structured benchmarks (strict hierarchy).
+  - `/tmp/{topic}/`: Ephemeral test benches, disposable scripts, and payload handoffs.
+  - *Hidden tool scratchpads (e.g. `brain/*/scratch/`) are strictly prohibited.*
 
 ## 4. Key Verification Commands (Fluid & Modular)
 Verification commands are maintained dynamically based on active work targets:
