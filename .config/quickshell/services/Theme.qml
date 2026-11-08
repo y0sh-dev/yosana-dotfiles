@@ -70,9 +70,9 @@ QtObject {
     readonly property color tempCold: isGridDip ? dipAccent : "#6cb6ff" // Crisp sky-blue clearly visible in dark room
 
     readonly property color wsActive: isGridDip ? dipAccent : targetAccent
-    readonly property color wsDisplayed: isGridDip ? dipFg : targetFg
-    readonly property color wsOccupied: isGridDip ? dipSubtext : targetSubtext
-    readonly property color wsEmpty: isGridDip ? dipEmpty : Qt.tint(targetBg, Qt.rgba(targetSubtext.r, targetSubtext.g, targetSubtext.b, 0.45))
+    readonly property color wsDisplayed: isGridDip ? dipFg : fgSoft // "Current white": high-clarity soft white for displayed sub-monitors
+    readonly property color wsOccupied: isGridDip ? dipSubtext : Qt.tint(targetBg, Qt.rgba(1, 1, 1, 0.48)) // Subtly white, clearly distinguished from empty
+    readonly property color wsEmpty: isGridDip ? dipEmpty : Qt.tint(targetBg, Qt.rgba(1, 1, 1, 0.18)) // Quiet/dim baseline for empty workspaces
 
     // Metrics & Typography
     property int barHeight: 48
@@ -100,6 +100,18 @@ QtObject {
         }
     }
 
+    // Safety watchdog: ensure shell never gets trapped in darkness if file I/O or cat fails
+    property var gridDipWatchdog: Timer {
+        interval: 800
+        repeat: false
+        onTriggered: {
+            if (theme.isGridDip) {
+                console.warn("Theme: Grid Dip watchdog triggered after 800ms - forcing power restoral");
+                theme.isGridDip = false;
+            }
+        }
+    }
+
     // Trigger file watcher (never stale, zero polling overhead)
     readonly property FileView triggerView: FileView {
         path: theme.triggerPath
@@ -108,14 +120,22 @@ QtObject {
         onFileChanged: {
             theme.isGridDip = true;
             theme.gridDipTimer.restart();
+            theme.gridDipWatchdog.restart();
         }
     }
 
     // Process-based reader: executes 'cat' directly to completely bypass QML FileView caching bugs
     property var walProc: Process {
         command: ["cat", theme.walPath]
+        onExited: {
+            theme.gridDipWatchdog.stop();
+            if (theme.isGridDip) {
+                theme.isGridDip = false;
+            }
+        }
         stdout: StdioCollector {
             onDataChanged: {
+                theme.gridDipWatchdog.stop();
                 var raw = (data || "").toString().trim();
                 if (raw.length > 0) {
                     theme.applyColors(raw);
@@ -130,6 +150,46 @@ QtObject {
         walProc.running = true;
     }
 
+    // --- WCAG 2.1 Contrast & Chromatic Resilience Engineering ---
+    function relativeLuminance(col) {
+        function channel(v) {
+            return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+        }
+        var c = Qt.color(col);
+        return 0.2126 * channel(c.r) + 0.7152 * channel(c.g) + 0.0722 * channel(c.b);
+    }
+
+    function contrastRatio(col1, col2) {
+        var l1 = relativeLuminance(col1);
+        var l2 = relativeLuminance(col2);
+        return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+    }
+
+    // Pick the most red-dominant color that meets contrast requirements against background
+    function pickReddest(candidates, fallback) {
+        var best = null;
+        var bestScore = -1;
+        for (var i = 0; i < candidates.length; i++) {
+            var hex = candidates[i];
+            if (!hex) continue;
+            var c = Qt.color(hex);
+            // Redness metric: positive when red channel significantly exceeds green & blue
+            var rDominance = c.r - Math.max(c.g, c.b);
+            var cr = contrastRatio(hex, theme.targetBg);
+            if (cr >= 3.0 && rDominance > 0.05) {
+                var score = rDominance * 2.0 + (cr >= 4.5 ? 1.0 : 0.0);
+                if (score > bestScore) {
+                    bestScore = score;
+                    best = hex;
+                }
+            }
+        }
+        if (!best || contrastRatio(best, theme.targetBg) < 4.5) {
+            return fallback;
+        }
+        return best;
+    }
+
     function applyColors(raw) {
         try {
             const parsed = JSON.parse(raw);
@@ -142,12 +202,23 @@ QtObject {
                 if (c.color0) theme.targetSurface = c.color0;
                 if (c.color4) theme.targetAccent = c.color4;
                 if (c.color8) theme.targetSubtext = c.color8;
-                theme.targetUrgent = c.color1 || "#a05042";
-                theme.targetWarning = c.color3 || "#d19a66";
-                theme.targetSun = c.color9 || c.color1 || "#d9544d";
-                theme.targetSat = c.color12 || c.color4 || "#5e81ac";
+
+                // Axis 4 Refinement: Guard urgent & red against smart-sort navy collapse
+                theme.targetUrgent = pickReddest([c.color9, c.color1, c.color3], "#e06c75");
+                theme.targetSun = pickReddest([c.color9, c.color1, c.color3], "#d9544d");
+
+                theme.targetWarning = (c.color3 && contrastRatio(c.color3, theme.targetBg) >= 3.0) ? c.color3 : "#d19a66";
+                theme.targetSat = (c.color12 || c.color4) || "#5e81ac";
+
+                // Axis 4 Refinement: Collision guard between accent and subtext
+                // In monochromatic/low-saturation schemes, color4 (accent) and color8 (subtext) can converge below 1.35:1
+                var crAccentSub = contrastRatio(theme.targetAccent, theme.targetSubtext);
+                if (crAccentSub < 1.35) {
+                    console.log("Theme: Accent and subtext collision detected (" + crAccentSub.toFixed(2) + ":1). Applying hardened neutral subtext.");
+                    theme.targetSubtext = theme.subtextDim;
+                }
             }
-            console.log("Fresh wal colors applied via cat: wallpaper=" + (parsed.wallpaper || "") + " accent=" + theme.targetAccent);
+            console.log("Fresh wal colors applied via cat: wallpaper=" + (parsed.wallpaper || "") + " accent=" + theme.targetAccent + " urgent=" + theme.targetUrgent);
         } catch (e) {
             console.log("Failed to parse fresh colors:", e);
         }

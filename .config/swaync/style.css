@@ -1,13 +1,14 @@
 @import url("/home/yukkkk1/.cache/wal/colors.css");
 
 /* ==========================================================================
-   SwayNC Theme: Minimal, Quiet & Frosted Glass
-   Designed to blend seamlessly with Hyprland 1size-3passes blur & Pywal palette
+   SwayNC Theme: Minimalist Frosted Monolith & Adaptive Contrast Glass
+   - Normal state: Balanced translucency preserving Hyprland blur
+   - Hover / Focus state: Deep black opacity boost to eliminate background bleed
    ========================================================================== */
 
 * {
   font-family: "FiraCode Nerd Font", sans-serif;
-  transition: all 150ms ease-out;
+  transition: all 140ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Base transparent root */
@@ -20,11 +21,11 @@ blankwindow {
    Control Center Monolith (Floating Frosted Island)
    ========================================================================== */
 .control-center {
-  background: rgba(15, 15, 25, 0.68);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
+  background: rgba(12, 15, 22, 0.78); /* Balanced frosted glass */
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 18px;
   padding: 16px;
-  box-shadow: none;
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.50);
 }
 
 /* Scroll area for notifications */
@@ -33,80 +34,81 @@ blankwindow {
 }
 
 .control-center-list-placeholder {
-  opacity: 0.45;
-  color: var(--color8, #9098a1);
+  opacity: 0.65;
+  color: #8c98a6;
   font-size: 14px;
   font-weight: 500;
-  padding: 40px 0;
+  padding: 48px 0;
 }
 
 /* ==========================================================================
-   Widget: Header / Title ("Notifications" & "Clear")
+   Widget: Header / Title ("NOTIFICATIONS" & "Clear")
    ========================================================================== */
 .widget-title {
   padding: 4px 8px 12px 8px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .widget-title > label {
   font-size: 15px;
   font-weight: 700;
-  color: var(--color6, #9BB3D1);
-  letter-spacing: 0.5px;
+  color: #ffffff;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
 }
 
 .widget-title > button {
-  background: transparent;
-  color: var(--color8, #9098a1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #8c98a6;
   font-size: 12px;
   font-weight: 600;
-  padding: 4px 10px;
+  padding: 4px 12px;
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .widget-title > button:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--foreground, #cedae6);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.20);
 }
 
 /* ==========================================================================
    Widget: Do Not Disturb Switch
    ========================================================================== */
 .widget-dnd {
-  padding: 8px 8px;
+  padding: 10px 12px;
   margin-bottom: 12px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.04);
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .widget-dnd > label {
   font-size: 13px;
-  font-weight: 500;
-  color: var(--foreground, #cedae6);
+  font-weight: 600;
+  color: #e0e6ed;
 }
 
 .widget-dnd > switch {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.14);
   border-radius: 12px;
   border: none;
-  min-width: 38px;
-  min-height: 20px;
+  min-width: 40px;
+  min-height: 22px;
 }
 
 .widget-dnd > switch:checked {
-  background: var(--color5, #748AB2);
+  background: rgba(255, 255, 255, 0.40); /* Calm neutral highlight */
 }
 
 .widget-dnd > switch slider {
-  background: var(--foreground, #cedae6);
+  background: #ffffff;
   border-radius: 10px;
   min-width: 16px;
   min-height: 16px;
-  margin: 2px;
+  margin: 3px;
 }
 
 /* ==========================================================================
@@ -122,82 +124,114 @@ blankwindow {
   padding: 0;
 }
 
+/* Default state: Frosted translucency */
 .notification-row .notification-background .notification {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(18, 22, 30, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 14px;
   padding: 12px 14px;
   box-shadow: none;
 }
 
-.notification-row .notification-background .notification:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.14);
+/* Hover / Focus state: Deep black opacity boost to eliminate background bleed & maximize text contrast */
+.notification-row .notification-background .notification:hover,
+.notification-row .notification-background .notification:focus {
+  background: rgba(6, 8, 12, 0.94); /* Darkens and becomes nearly opaque */
+  border-color: rgba(255, 255, 255, 0.22); /* Clean silver edge */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.65);
 }
 
 /* Toast popup window overrides (floating on desktop) */
 .floating-notifications .notification {
-  background: rgba(15, 15, 25, 0.78);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(12, 15, 22, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   padding: 14px 16px;
-  margin: 6px 14px;
+  margin: 8px 14px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.50);
 }
 
-/* Typography inside notifications */
+.floating-notifications .notification:hover,
+.floating-notifications .notification:focus {
+  background: rgba(5, 7, 10, 0.96); /* Opaque black on hover: zero wallpaper/terminal bleed */
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.75);
+}
+
+/* Critical / Urgent notifications (clipping, safety, low-battery) */
+.critical .notification {
+  border-color: #e06c75 !important;
+  background: rgba(55, 26, 26, 0.65) !important;
+}
+
+.critical .notification:hover {
+  background: rgba(45, 18, 18, 0.94) !important;
+  border-color: #f07178 !important;
+}
+
+.critical .summary {
+  color: #f07178 !important;
+}
+
+/* ==========================================================================
+   Typography inside notifications (Crisp white against dark backings)
+   ========================================================================== */
 .summary {
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 700;
-  color: var(--foreground, #cedae6);
-  margin-bottom: 2px;
+  color: #ffffff; /* Crisp white title */
+  margin-bottom: 4px;
+  letter-spacing: 0.2px;
 }
 
 .body {
-  font-size: 13px;
-  color: var(--color8, #9098a1);
-  line-height: 1.4;
+  font-size: 13.5px;
+  color: #dce3eb; /* High-clarity soft white: supreme legibility */
+  line-height: 1.45;
 }
 
 .time {
   font-size: 11px;
-  color: var(--color8, #9098a1);
-  opacity: 0.65;
+  color: #8c98a6;
+  font-weight: 500;
   margin-right: 6px;
 }
 
 /* Individual card Close Button */
 .close-button {
   background: transparent;
-  color: var(--color8, #9098a1);
+  color: #8c98a6;
   border: none;
   border-radius: 100%;
-  min-width: 20px;
-  min-height: 20px;
-  opacity: 0.0; /* Hidden by default for quiet minimalism */
+  min-width: 22px;
+  min-height: 22px;
+  opacity: 0.0;
 }
 
 .notification:hover .close-button {
-  opacity: 0.7; /* Gently appears on card hover */
+  opacity: 0.8;
 }
 
 .close-button:hover {
   opacity: 1.0 !important;
-  color: var(--color3, #A05042);
-  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  background: rgba(224, 108, 117, 0.45);
 }
 
 /* Action buttons inside notification */
 .notification-action {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
-  color: var(--foreground, #cedae6);
+  color: #e0e6ed;
   font-size: 12px;
-  padding: 6px 12px;
+  font-weight: 600;
+  padding: 6px 14px;
   margin-top: 8px;
 }
 
 .notification-action:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
 }
