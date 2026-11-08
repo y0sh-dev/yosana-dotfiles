@@ -4,359 +4,269 @@ import QtQuick.Controls
 import "../../services"
 import "../../components"
 
-ColumnLayout {
+// MESH deck — Tailscale overlay, zero-trust resolver, and CAKE shaping.
+// Read-only telemetry except for the overlay toggle.
+Flickable {
     id: meshRoot
 
-    signal backClicked()
+    contentWidth: width - 10
+    contentHeight: contentLayout.implicitHeight
+    clip: true
+    boundsBehavior: Flickable.StopAtBounds
 
-    spacing: Math.round(16 * Theme.uiScale)
+    ScrollBar.vertical: ModernScrollBar { targetFlickable: meshRoot }
 
-    // =========================================================================
-    // HEADER: Back Button + Title
-    // =========================================================================
-    RowLayout {
-        Layout.fillWidth: true
-        spacing: 10
+    ColumnLayout {
+        id: contentLayout
+        width: meshRoot.contentWidth
+        spacing: Math.round(16 * Theme.uiScale)
 
-        // Ghost Back Button
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 9
+            Rectangle {
+                width: 6; height: 6; radius: 3
+                color: NetworkService.tailscaleActive ? Theme.accent : Theme.subtextDim
+            }
+            MicroLabel { text: "MESH & ROUTING TELEMETRY" }
+            Item { Layout.fillWidth: true }
+            Text {
+                text: "LIVE"
+                color: Theme.accent
+                font.pixelSize: Math.round(10 * Theme.uiScale)
+                font.bold: true
+                font.letterSpacing: 1.2
+                font.family: Theme.fontFamily
+            }
+        }
+
+        // ═════════════════════════════════════════════════════════════
+        // TAILSCALE OVERLAY
+        // ═════════════════════════════════════════════════════════════
         Rectangle {
-            implicitWidth: Math.round(84 * Theme.uiScale)
-            implicitHeight: Math.round(32 * Theme.uiScale)
-            radius: Math.round(8 * Theme.uiScale)
-            color: backMouse.containsMouse ? Theme.surfaceHover : Theme.surface
-            border.color: backMouse.containsMouse ? Theme.accent : Qt.rgba(255, 255, 255, 0.08)
+            Layout.fillWidth: true
+            implicitHeight: tsCol.implicitHeight + Math.round(40 * Theme.uiScale)
+            radius: Math.round(16 * Theme.uiScale)
+            color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.45)
+            border.color: Qt.rgba(255, 255, 255, 0.06)
             border.width: 1
 
-            Behavior on color { ColorAnimation { duration: 120 } }
-            Behavior on border.color { ColorAnimation { duration: 120 } }
-
-            RowLayout {
-                anchors.centerIn: parent
-                spacing: 6
-
-                Text {
-                    text: "‹"
-                    color: backMouse.containsMouse ? Theme.accent : Theme.fg
-                    font.pixelSize: 15
-                    font.bold: true
-                    font.family: Theme.fontFamily
-                }
-
-                Text {
-                    text: "Back"
-                    color: backMouse.containsMouse ? Theme.accent : Theme.fgSoft
-                    font.pixelSize: 13
-                    font.bold: true
-                    font.family: Theme.fontFamily
-                }
-            }
-
-            MouseArea {
-                id: backMouse
+            ColumnLayout {
+                id: tsCol
                 anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: meshRoot.backClicked()
-            }
-        }
+                anchors.margins: Math.round(20 * Theme.uiScale)
+                spacing: Math.round(12 * Theme.uiScale)
 
-        Item { Layout.fillWidth: true }
-
-        // Modal Title
-        Text {
-            text: "MESH & ROUTING TELEMETRY"
-            color: Theme.fg
-            font.pixelSize: 13
-            font.bold: true
-            font.letterSpacing: 1.2
-            font.family: Theme.fontFamily
-        }
-
-        Item { Layout.fillWidth: true }
-    }
-
-    Rectangle {
-        Layout.fillWidth: true
-        height: 1
-        color: Qt.rgba(255, 255, 255, 0.06)
-    }
-
-    // =========================================================================
-    // SCROLLABLE TELEMETRY (Fixed Modal Height, Internal Flickable)
-    // =========================================================================
-    Flickable {
-        id: flickable
-        Layout.fillWidth: true
-        Layout.fillHeight: true
-        Layout.rightMargin: -14
-        contentWidth: width - 14
-        contentHeight: meshContentLayout.implicitHeight
-        clip: true
-        boundsBehavior: Flickable.StopAtBounds
-
-        ScrollBar.vertical: ModernScrollBar {
-            targetFlickable: flickable
-        }
-
-        ColumnLayout {
-            id: meshContentLayout
-            width: flickable.contentWidth
-            spacing: Math.round(16 * Theme.uiScale)
-
-            // =================================================================
-            // SECTION 1: TAILSCALE WIREGUARD MESH
-            // =================================================================
-            Rectangle {
-                Layout.fillWidth: true
-                implicitHeight: tsLayout.implicitHeight + Math.round(36 * Theme.uiScale)
-                radius: Math.round(12 * Theme.uiScale)
-                color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.35)
-                border.color: Qt.rgba(255, 255, 255, 0.06)
-                border.width: 1
-
-                ColumnLayout {
-                    id: tsLayout
-                    anchors.fill: parent
-                    anchors.margins: Math.round(18 * Theme.uiScale)
-                    spacing: Math.round(12 * Theme.uiScale)
-
-                    // Header
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 8
-
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 9
+                    Text {
+                        text: "󰖂"
+                        color: NetworkService.tailscaleActive ? Theme.accent : Theme.subtextDim
+                        font.pixelSize: Math.round(15 * Theme.uiScale)
+                        font.family: Theme.fontFamily
+                    }
+                    Text {
+                        text: "TAILSCALE WIREGUARD"
+                        color: Theme.fgSoft
+                        font.pixelSize: Math.round(12 * Theme.uiScale)
+                        font.bold: true
+                        font.letterSpacing: 1.1
+                        font.family: Theme.fontFamily
+                    }
+                    Item { Layout.fillWidth: true }
+                    Rectangle {
+                        implicitWidth: tsBadge.implicitWidth + 18
+                        implicitHeight: 24
+                        radius: 12
+                        color: NetworkService.tailscaleActive
+                               ? Qt.tint(Theme.surface, Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25))
+                               : Qt.rgba(0, 0, 0, 0.40)
+                        border.color: NetworkService.tailscaleActive ? Theme.accent : Qt.rgba(255, 255, 255, 0.08)
+                        border.width: 1
                         Text {
-                            text: "󰖂"
+                            id: tsBadge
+                            anchors.centerIn: parent
+                            text: NetworkService.tailscaleActive ? "ACTIVE" : "STANDBY"
                             color: NetworkService.tailscaleActive ? Theme.accent : Theme.subtextDim
-                            font.pixelSize: 16
-                            font.family: Theme.fontFamily
-                        }
-
-                        Text {
-                            text: "TAILSCALE WIREGUARD OVERLAY"
-                            color: Theme.fg
-                            font.pixelSize: 12
+                            font.pixelSize: Math.round(10 * Theme.uiScale)
                             font.bold: true
-                            font.letterSpacing: 1.0
+                            font.letterSpacing: 0.9
                             font.family: Theme.fontFamily
                         }
-
-                        Item { Layout.fillWidth: true }
-
-                        Rectangle {
-                            implicitWidth: tsBadgeText.implicitWidth + 18
-                            implicitHeight: 24
-                            radius: 11
-                            color: NetworkService.tailscaleActive 
-                                ? Qt.tint(Theme.surface, Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25))
-                                : Qt.rgba(0, 0, 0, 0.40)
-                            border.color: NetworkService.tailscaleActive ? Theme.accent : Qt.rgba(255, 255, 255, 0.08)
-                            border.width: 1
-
-                            Text {
-                                id: tsBadgeText
-                                anchors.centerIn: parent
-                                text: NetworkService.tailscaleActive ? "ACTIVE" : "STANDBY"
-                                color: NetworkService.tailscaleActive ? Theme.accent : Theme.subtextDim
-                                font.pixelSize: 11
-                                font.bold: true
-                                font.letterSpacing: 0.8
-                                font.family: Theme.fontFamily
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: NetworkService.toggleTailscale()
-                            }
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: NetworkService.toggleTailscale()
                         }
-                    }
-
-                    // Key-Value Rows
-                    GridLayout {
-                        Layout.fillWidth: true
-                        columns: 2
-                        columnSpacing: 20
-                        rowSpacing: 9
-
-                        Text { text: "Overlay Address"; color: Theme.subtextDim; font.pixelSize: 13; font.family: Theme.fontFamily }
-                        Text { text: NetworkService.tailscaleActive ? NetworkService.tailscaleIp : "Disconnected"; color: Theme.fgSoft; font.pixelSize: 13; font.bold: true; font.family: Theme.fontFamily }
-
-                        Text { text: "MagicDNS Route"; color: Theme.subtextDim; font.pixelSize: 13; font.family: Theme.fontFamily }
-                        Text { text: "yukkkk1-station.ts.net"; color: Theme.fgSoft; font.pixelSize: 13; font.family: Theme.fontFamily }
-
-                        Text { text: "Cipher Suite"; color: Theme.subtextDim; font.pixelSize: 13; font.family: Theme.fontFamily }
-                        Text { text: "ChaCha20-Poly1305 (Noise_IK)"; color: Theme.fgSoft; font.pixelSize: 13; font.family: Theme.fontFamily }
-
-                        Text { text: "Direct Mesh Peer"; color: Theme.subtextDim; font.pixelSize: 13; font.family: Theme.fontFamily }
-                        Text { text: "tokyo-relay-01 · 1.4 ms RTT"; color: Theme.accent; font.pixelSize: 13; font.family: Theme.fontFamily }
                     }
                 }
-            }
 
-            // =================================================================
-            // SECTION 2: ZERO-TRUST RECURSIVE DNS (UNBOUND)
-            // =================================================================
-            Rectangle {
-                Layout.fillWidth: true
-                implicitHeight: dnsLayout.implicitHeight + Math.round(36 * Theme.uiScale)
-                radius: Math.round(12 * Theme.uiScale)
-                color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.35)
-                border.color: Qt.rgba(255, 255, 255, 0.06)
-                border.width: 1
+                GridLayout {
+                    Layout.fillWidth: true
+                    columns: 2
+                    columnSpacing: Math.round(22 * Theme.uiScale)
+                    rowSpacing: Math.round(9 * Theme.uiScale)
 
-                ColumnLayout {
-                    id: dnsLayout
-                    anchors.fill: parent
-                    anchors.margins: Math.round(18 * Theme.uiScale)
-                    spacing: Math.round(12 * Theme.uiScale)
-
-                    // Header
-                    RowLayout {
+                    KvLabel { text: "Overlay Address" }
+                    KvValue {
+                        text: NetworkService.tailscaleActive ? NetworkService.tailscaleIp : "Disconnected"
+                        color: Theme.accent
                         Layout.fillWidth: true
-                        spacing: 8
-
-                        Text {
-                            text: "󰒃"
-                            color: Theme.accent
-                            font.pixelSize: 16
-                            font.family: Theme.fontFamily
-                        }
-
-                        Text {
-                            text: "ZERO-TRUST DNS & RESOLVER"
-                            color: Theme.fg
-                            font.pixelSize: 12
-                            font.bold: true
-                            font.letterSpacing: 1.0
-                            font.family: Theme.fontFamily
-                        }
-
-                        Item { Layout.fillWidth: true }
-
-                        Rectangle {
-                            implicitWidth: dnsTagText.implicitWidth + 18
-                            implicitHeight: 24
-                            radius: 11
-                            color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.15)
-                            border.color: Theme.accent
-                            border.width: 1
-
-                            Text {
-                                id: dnsTagText
-                                anchors.centerIn: parent
-                                text: "PROTECTED"
-                                color: Theme.accent
-                                font.pixelSize: 11
-                                font.bold: true
-                                font.letterSpacing: 0.8
-                                font.family: Theme.fontFamily
-                            }
-                        }
                     }
 
-                    // Key-Value Rows
-                    GridLayout {
-                        Layout.fillWidth: true
-                        columns: 2
-                        columnSpacing: 20
-                        rowSpacing: 9
+                    KvLabel { text: "MagicDNS Route" }
+                    KvValue { text: "yukkkk1-station.ts.net"; Layout.fillWidth: true }
 
-                        Text { text: "Local Daemon"; color: Theme.subtextDim; font.pixelSize: 13; font.family: Theme.fontFamily }
-                        Text { text: "Unbound 1.20 @ 127.0.0.1:853"; color: Theme.fgSoft; font.pixelSize: 13; font.bold: true; font.family: Theme.fontFamily }
+                    KvLabel { text: "Cipher Suite" }
+                    KvValue { text: "ChaCha20-Poly1305 (Noise_IK)"; Layout.fillWidth: true }
 
-                        Text { text: "Upstream Transport"; color: Theme.subtextDim; font.pixelSize: 13; font.family: Theme.fontFamily }
-                        Text { text: "DNS-over-TLS (Quad9 / TLS 1.3)"; color: Theme.fgSoft; font.pixelSize: 13; font.family: Theme.fontFamily }
-
-                        Text { text: "Validation"; color: Theme.subtextDim; font.pixelSize: 13; font.family: Theme.fontFamily }
-                        Text { text: "DNSSEC Strict Enforced"; color: Theme.accent; font.pixelSize: 13; font.family: Theme.fontFamily }
-
-                        Text { text: "Cache Latency"; color: Theme.subtextDim; font.pixelSize: 13; font.family: Theme.fontFamily }
-                        Text { text: "0.3 ms · Hit Ratio 91.8%"; color: Theme.fgSoft; font.pixelSize: 13; font.family: Theme.fontFamily }
-                    }
-                }
-            }
-
-            // =================================================================
-            // SECTION 3: BUFFERBLOAT MITIGATION (CAKE QDISC)
-            // =================================================================
-            Rectangle {
-                Layout.fillWidth: true
-                implicitHeight: cakeLayout.implicitHeight + Math.round(36 * Theme.uiScale)
-                radius: Math.round(12 * Theme.uiScale)
-                color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.35)
-                border.color: Qt.rgba(255, 255, 255, 0.06)
-                border.width: 1
-
-                ColumnLayout {
-                    id: cakeLayout
-                    anchors.fill: parent
-                    anchors.margins: Math.round(18 * Theme.uiScale)
-                    spacing: Math.round(12 * Theme.uiScale)
-
-                    // Header
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 8
-
-                        Text {
-                            text: "󰓅"
-                            color: Theme.accent
-                            font.pixelSize: 16
-                            font.family: Theme.fontFamily
-                        }
-
-                        Text {
-                            text: "TRAFFIC SHAPING (CAKE QDISC)"
-                            color: Theme.fg
-                            font.pixelSize: 12
-                            font.bold: true
-                            font.letterSpacing: 1.0
-                            font.family: Theme.fontFamily
-                        }
-
-                        Item { Layout.fillWidth: true }
-
-                        Rectangle {
-                            implicitWidth: cakeTagText.implicitWidth + 18
-                            implicitHeight: 24
-                            radius: 11
-                            color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.15)
-                            border.color: Theme.accent
-                            border.width: 1
-
-                            Text {
-                                id: cakeTagText
-                                anchors.centerIn: parent
-                                text: "LAMINAR FLOW"
-                                color: Theme.accent
-                                font.pixelSize: 11
-                                font.bold: true
-                                font.letterSpacing: 0.8
-                                font.family: Theme.fontFamily
-                            }
-                        }
-                    }
-
-                    // Key-Value Rows
-                    GridLayout {
-                        Layout.fillWidth: true
-                        columns: 2
-                        columnSpacing: 20
-                        rowSpacing: 9
-
-                        Text { text: "Queue Discipline"; color: Theme.subtextDim; font.pixelSize: 13; font.family: Theme.fontFamily }
-                        Text { text: "CAKE (DiffServ / FQ-CoDel hybrid)"; color: Theme.fgSoft; font.pixelSize: 13; font.bold: true; font.family: Theme.fontFamily }
-
-                        Text { text: "Flow Isolation"; color: Theme.subtextDim; font.pixelSize: 13; font.family: Theme.fontFamily }
-                        Text { text: "Triple-isolate (host / flow / src-dst)"; color: Theme.fgSoft; font.pixelSize: 13; font.family: Theme.fontFamily }
-
-                        Text { text: "Buffer Overhead"; color: Theme.subtextDim; font.pixelSize: 13; font.family: Theme.fontFamily }
-                        Text { text: "0 drops · +0.2 ms peak under load"; color: Theme.accent; font.pixelSize: 13; font.family: Theme.fontFamily }
-                    }
+                    KvLabel { text: "Direct Mesh Peer" }
+                    KvValue { text: "tokyo-relay-01 · 1.4 ms RTT"; Layout.fillWidth: true }
                 }
             }
         }
+
+        // ═════════════════════════════════════════════════════════════
+        // ZERO-TRUST DNS
+        // ═════════════════════════════════════════════════════════════
+        Rectangle {
+            Layout.fillWidth: true
+            implicitHeight: dnsCol.implicitHeight + Math.round(40 * Theme.uiScale)
+            radius: Math.round(16 * Theme.uiScale)
+            color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.45)
+            border.color: Qt.rgba(255, 255, 255, 0.06)
+            border.width: 1
+
+            ColumnLayout {
+                id: dnsCol
+                anchors.fill: parent
+                anchors.margins: Math.round(20 * Theme.uiScale)
+                spacing: Math.round(12 * Theme.uiScale)
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 9
+                    Text { text: "󰒃"; color: Theme.accent; font.pixelSize: Math.round(15 * Theme.uiScale); font.family: Theme.fontFamily }
+                    Text {
+                        text: "ZERO-TRUST DNS & RESOLVER"
+                        color: Theme.fgSoft
+                        font.pixelSize: Math.round(12 * Theme.uiScale)
+                        font.bold: true
+                        font.letterSpacing: 1.1
+                        font.family: Theme.fontFamily
+                    }
+                    Item { Layout.fillWidth: true }
+                    Rectangle {
+                        implicitWidth: dnsBadge.implicitWidth + 18
+                        implicitHeight: 24
+                        radius: 12
+                        color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.12)
+                        border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.55)
+                        border.width: 1
+                        Text {
+                            id: dnsBadge
+                            anchors.centerIn: parent
+                            text: "PROTECTED"
+                            color: Theme.accent
+                            font.pixelSize: Math.round(10 * Theme.uiScale)
+                            font.bold: true
+                            font.letterSpacing: 0.9
+                            font.family: Theme.fontFamily
+                        }
+                    }
+                }
+
+                GridLayout {
+                    Layout.fillWidth: true
+                    columns: 2
+                    columnSpacing: Math.round(22 * Theme.uiScale)
+                    rowSpacing: Math.round(9 * Theme.uiScale)
+
+                    KvLabel { text: "Local Daemon" }
+                    KvValue { text: "Unbound 1.20 @ 127.0.0.1:853"; Layout.fillWidth: true }
+
+                    KvLabel { text: "Upstream Transport" }
+                    KvValue { text: "DNS-over-TLS (Quad9 / TLS 1.3)"; Layout.fillWidth: true }
+
+                    KvLabel { text: "Validation" }
+                    KvValue { text: "DNSSEC Strict Enforced"; color: Theme.accent; Layout.fillWidth: true }
+
+                    KvLabel { text: "Cache Latency" }
+                    KvValue { text: "0.3 ms · Hit Ratio 91.8%"; Layout.fillWidth: true }
+                }
+            }
+        }
+
+        // ═════════════════════════════════════════════════════════════
+        // TRAFFIC SHAPING (CAKE)
+        // ═════════════════════════════════════════════════════════════
+        Rectangle {
+            Layout.fillWidth: true
+            implicitHeight: cakeCol.implicitHeight + Math.round(40 * Theme.uiScale)
+            radius: Math.round(16 * Theme.uiScale)
+            color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.45)
+            border.color: Qt.rgba(255, 255, 255, 0.06)
+            border.width: 1
+
+            ColumnLayout {
+                id: cakeCol
+                anchors.fill: parent
+                anchors.margins: Math.round(20 * Theme.uiScale)
+                spacing: Math.round(12 * Theme.uiScale)
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 9
+                    Text { text: "󰓅"; color: Theme.accent; font.pixelSize: Math.round(15 * Theme.uiScale); font.family: Theme.fontFamily }
+                    Text {
+                        text: "TRAFFIC SHAPING (CAKE QDISC)"
+                        color: Theme.fgSoft
+                        font.pixelSize: Math.round(12 * Theme.uiScale)
+                        font.bold: true
+                        font.letterSpacing: 1.1
+                        font.family: Theme.fontFamily
+                    }
+                    Item { Layout.fillWidth: true }
+                    Rectangle {
+                        implicitWidth: cakeBadge.implicitWidth + 18
+                        implicitHeight: 24
+                        radius: 12
+                        color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.12)
+                        border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.55)
+                        border.width: 1
+                        Text {
+                            id: cakeBadge
+                            anchors.centerIn: parent
+                            text: "LAMINAR"
+                            color: Theme.accent
+                            font.pixelSize: Math.round(10 * Theme.uiScale)
+                            font.bold: true
+                            font.letterSpacing: 0.9
+                            font.family: Theme.fontFamily
+                        }
+                    }
+                }
+
+                GridLayout {
+                    Layout.fillWidth: true
+                    columns: 2
+                    columnSpacing: Math.round(22 * Theme.uiScale)
+                    rowSpacing: Math.round(9 * Theme.uiScale)
+
+                    KvLabel { text: "Queue Discipline" }
+                    KvValue { text: "CAKE (DiffServ / FQ-CoDel hybrid)"; Layout.fillWidth: true }
+
+                    KvLabel { text: "Flow Isolation" }
+                    KvValue { text: "Triple-isolate (host / flow / src-dst)"; Layout.fillWidth: true }
+
+                    KvLabel { text: "Buffer Overhead" }
+                    KvValue { text: "0 drops · +0.2 ms peak under load"; color: Theme.accent; Layout.fillWidth: true }
+                }
+            }
+        }
+
+        Item { Layout.fillWidth: true; Layout.preferredHeight: Math.round(4 * Theme.uiScale) }
     }
 }

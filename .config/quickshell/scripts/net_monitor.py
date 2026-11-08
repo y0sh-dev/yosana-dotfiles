@@ -124,27 +124,65 @@ def get_traffic_rates(iface, last_bytes, last_time):
     except Exception:
         pass
 
+    def fmt(s):
+        if s >= 1024 * 1024:
+            return f"{s / (1024 * 1024):.1f} MB/s"
+        if s >= 1024:
+            return f"{s / 1024:.0f} KB/s"
+        return f"{s:.0f} B/s"
+
     if last_bytes["rx"] == 0:
-        rx_rate_str = "0 B/s"
-        tx_rate_str = "0 B/s"
+        rx_speed = 0.0
+        tx_speed = 0.0
     else:
-        rx_speed = max(0, (rx_bytes - last_bytes["rx"]) / dt)
-        tx_speed = max(0, (tx_bytes - last_bytes["tx"]) / dt)
-
-        def fmt(s):
-            if s >= 1024 * 1024:
-                return f"{s / (1024 * 1024):.1f} MB/s"
-            elif s >= 1024:
-                return f"{s / 1024:.0f} KB/s"
-            else:
-                return f"{s:.0f} B/s"
-
-        rx_rate_str = fmt(rx_speed)
-        tx_rate_str = fmt(tx_speed)
+        rx_speed = max(0.0, (rx_bytes - last_bytes["rx"]) / dt)
+        tx_speed = max(0.0, (tx_bytes - last_bytes["tx"]) / dt)
 
     last_bytes["rx"] = rx_bytes
     last_bytes["tx"] = tx_bytes
-    return rx_rate_str, tx_rate_str, now
+    return fmt(rx_speed), fmt(tx_speed), rx_speed, tx_speed, now
+
+
+def get_gateway():
+    try:
+        out = subprocess.run(["ip", "route", "show", "default"], capture_output=True,
+                             text=True, timeout=1.5).stdout
+        # Prefer default via on physical interfaces (wlan*, enp*, eth*)
+        for line in out.splitlines():
+            if "dev wlan" in line or "dev enp" in line or "dev eth" in line:
+                m = re.search(r"default via (\S+)", line)
+                if m:
+                    return m.group(1)
+        m = re.search(r"default via (\S+)", out)
+        if m:
+            return m.group(1)
+    except Exception:
+        pass
+    return ""
+
+
+def get_rtt(gateway):
+    targets = [gateway, "1.1.1.1", "9.9.9.9"] if gateway else ["1.1.1.1", "9.9.9.9"]
+    env = dict(os.environ, LC_ALL="C")
+    for target in targets:
+        if not target:
+            continue
+        try:
+            out = subprocess.run(["ping", "-c", "1", "-W", "1", "-n", target],
+                                 capture_output=True, text=True, timeout=1.5, env=env).stdout
+            # Extract avg RTT from statistics summary first
+            m = re.search(r"rtt [^=]+=\s*[0-9.]+/([0-9.]+)/", out)
+            if m:
+                val = float(m.group(1))
+                return f"{val:.1f} ms"
+            # Fallback to single packet time=
+            m = re.search(r"time=([0-9.]+)", out)
+            if m:
+                val = float(m.group(1))
+                return f"{val:.1f} ms"
+        except Exception:
+            pass
+    return "-- ms"
 
 def get_tailscale_status():
     ts_active = False
@@ -164,13 +202,25 @@ def main():
     last_bytes = {"rx": 0, "tx": 0}
     last_time = time.time()
 
+    loop = 0
+    cached_rtt = "-- ms"
+    gateway = ""
+
     while True:
         try:
             iface = get_default_interface()
             is_wired = not iface.startswith("wlan")
             ip = get_ip_address(iface)
-            rx_rate, tx_rate, last_time = get_traffic_rates(iface, last_bytes, last_time)
+            rx_rate, tx_rate, rx_bps, tx_bps, last_time = get_traffic_rates(iface, last_bytes, last_time)
             ts_active, ts_ip = get_tailscale_status()
+
+            # Probe gateway RTT roughly every 7.5s (5 cycles) so the hot loop
+            # never blocks on ICMP and idle CPU stays flat.
+            if loop % 5 == 0:
+                if not gateway or loop % 20 == 0:
+                    gateway = get_gateway()
+                cached_rtt = get_rtt(gateway)
+            loop += 1
 
             if is_wired:
                 connected = True
@@ -200,7 +250,9 @@ def main():
                 "phyRate": phy_rate,
                 "txRate": tx_rate,
                 "rxRate": rx_rate,
-                "rtt": "1.4 ms",
+                "txBps": tx_bps,
+                "rxBps": rx_bps,
+                "rtt": cached_rtt,
                 "tailscaleActive": ts_active,
                 "tailscaleIp": ts_ip
             }

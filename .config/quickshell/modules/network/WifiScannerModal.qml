@@ -4,213 +4,189 @@ import QtQuick.Controls
 import "../../services"
 import "../../components"
 
-ColumnLayout {
-    id: scannerRoot
+// RECON deck — airwave scan, silent fast-handover for known networks, and an
+// inline obsidian passphrase field for unknown secured APs. No popups.
+Flickable {
+    id: reconRoot
 
     signal backClicked()
 
-    spacing: Math.round(16 * Theme.uiScale)
+    property string pendingSsid: ""
+    property string passText: ""
+    readonly property bool keyboardRequested: pendingSsid.length > 0
 
-    // =========================================================================
-    // HEADER: Back Button + Title + Scan Trigger
-    // =========================================================================
-    RowLayout {
-        Layout.fillWidth: true
-        spacing: 10
+    contentWidth: width - 10
+    contentHeight: contentLayout.implicitHeight
+    clip: true
+    boundsBehavior: Flickable.StopAtBounds
 
-        // Ghost Back Button
-        Rectangle {
-            implicitWidth: Math.round(84 * Theme.uiScale)
-            implicitHeight: Math.round(32 * Theme.uiScale)
-            radius: Math.round(8 * Theme.uiScale)
-            color: backMouse.containsMouse ? Theme.surfaceHover : Theme.surface
-            border.color: backMouse.containsMouse ? Theme.accent : Qt.rgba(255, 255, 255, 0.08)
-            border.width: 1
+    ScrollBar.vertical: ModernScrollBar { targetFlickable: reconRoot }
 
-            Behavior on color { ColorAnimation { duration: 120 } }
-            Behavior on border.color { ColorAnimation { duration: 120 } }
-
-            RowLayout {
-                anchors.centerIn: parent
-                spacing: 6
-
-                Text {
-                    text: "‹"
-                    color: backMouse.containsMouse ? Theme.accent : Theme.fg
-                    font.pixelSize: 15
-                    font.bold: true
-                    font.family: Theme.fontFamily
-                }
-
-                Text {
-                    text: "Back"
-                    color: backMouse.containsMouse ? Theme.accent : Theme.fgSoft
-                    font.pixelSize: 13
-                    font.bold: true
-                    font.family: Theme.fontFamily
-                }
-            }
-
-            MouseArea {
-                id: backMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: scannerRoot.backClicked()
-            }
-        }
-
-        Item { Layout.fillWidth: true }
-
-        // Modal Title
-        Text {
-            text: "AIRWAVE RECON / WI-FI"
-            color: Theme.fg
-            font.pixelSize: 13
-            font.bold: true
-            font.letterSpacing: 1.2
-            font.family: Theme.fontFamily
-        }
-
-        Item { Layout.fillWidth: true }
-
-        // Recon / Scan Pill Button
-        Rectangle {
-            implicitWidth: scanPillRow.implicitWidth + 20
-            implicitHeight: Math.round(30 * Theme.uiScale)
-            radius: height / 2
-            color: scanMouse.containsMouse ? Theme.surfaceHover : Qt.rgba(0, 0, 0, 0.45)
-            border.color: NetworkService.isScanning ? Theme.accent : (scanMouse.containsMouse ? Theme.accent : Qt.rgba(255, 255, 255, 0.08))
-            border.width: 1
-
-            Behavior on color { ColorAnimation { duration: 120 } }
-            Behavior on border.color { ColorAnimation { duration: 120 } }
-
-            RowLayout {
-                id: scanPillRow
-                anchors.centerIn: parent
-                spacing: 6
-
-                Text {
-                    text: "󰑐"
-                    color: NetworkService.isScanning ? Theme.accent : (scanMouse.containsMouse ? Theme.accent : Theme.fgSoft)
-                    font.pixelSize: 13
-                    font.family: Theme.fontFamily
-
-                    RotationAnimation on rotation {
-                        running: NetworkService.isScanning
-                        loops: Animation.Infinite
-                        from: 0
-                        to: 360
-                        duration: 1000
-                    }
-                }
-
-                Text {
-                    text: NetworkService.isScanning ? "SCANNING" : "SCAN"
-                    color: NetworkService.isScanning ? Theme.accent : (scanMouse.containsMouse ? Theme.fg : Theme.fgSoft)
-                    font.pixelSize: 11
-                    font.bold: true
-                    font.letterSpacing: 0.8
-                    font.family: Theme.fontFamily
-                }
-            }
-
-            MouseArea {
-                id: scanMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: NetworkService.scan()
-            }
-        }
+    function beginJoin(ssid) {
+        pendingSsid = ssid;
+        passText = "";
     }
 
-    Rectangle {
-        Layout.fillWidth: true
-        height: 1
-        color: Qt.rgba(255, 255, 255, 0.06)
+    function abortJoin() {
+        pendingSsid = "";
+        passText = "";
     }
 
-    // =========================================================================
-    // SCROLLABLE AP LIST (Fixed Modal Height, Internal Flickable)
-    // =========================================================================
-    Flickable {
-        id: flickable
-        Layout.fillWidth: true
-        Layout.fillHeight: true
-        Layout.rightMargin: -14
-        contentWidth: width - 14
-        contentHeight: apListLayout.implicitHeight
-        clip: true
-        boundsBehavior: Flickable.StopAtBounds
+    function engage(ssid) {
+        if (passText.length === 0) return;
+        NetworkService.connectWithPassphrase(ssid, passText);
+        abortJoin();
+    }
 
-        ScrollBar.vertical: ModernScrollBar {
-            targetFlickable: flickable
-        }
+    ColumnLayout {
+        id: contentLayout
+        width: reconRoot.contentWidth
+        spacing: Math.round(14 * Theme.uiScale)
 
-        ColumnLayout {
-            id: apListLayout
-            width: flickable.contentWidth
-            spacing: 10
+        // ── Header ───────────────────────────────────────────────────
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 12
 
-            // Zero networks placeholder
-            Item {
-                visible: NetworkService.scanResults.length === 0
-                Layout.fillWidth: true
-                implicitHeight: 200
+            //Rectangle {
+            //    implicitWidth: Math.round(64 * Theme.uiScale)
+            //    implicitHeight: Math.round(28 * Theme.uiScale)
+            //    radius: 8
+            //    color: backMouse.containsMouse ? Theme.surfaceHover : Qt.rgba(0, 0, 0, 0.42)
+            //    border.color: backMouse.containsMouse ? Theme.accent : Qt.rgba(255, 255, 255, 0.08)
+            //    border.width: 1
+            //    Row {
+            //        anchors.centerIn: parent
+            //        spacing: 5
+            //        Text { text: "‹"; color: Theme.accent; font.pixelSize: 15; font.bold: true; font.family: Theme.fontFamily }
+            //        Text { text: "BACK"; color: Theme.fgSoft; font.pixelSize: 10; font.bold: true; font.letterSpacing: 0.8; font.family: Theme.fontFamily }
+            //    }
+            //    MouseArea {
+            //        id: backMouse
+            //        anchors.fill: parent
+            //        hoverEnabled: true
+            //        cursorShape: Qt.PointingHandCursor
+            //        onClicked: reconRoot.backClicked()
+            //    }
+            //}
+            Rectangle {
+                implicitWidth: 84
+                implicitHeight: 32
+                radius: 8
+                color: backMouse.containsMouse ? Theme.surfaceHover : Theme.surface
+                border.color: backMouse.containsMouse ? Theme.accent : Theme.border
+                border.width: 1
 
-                Column {
+                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on border.color { ColorAnimation { duration: 120 } }
+
+                RowLayout {
                     anchors.centerIn: parent
-                    spacing: 8
+                    spacing: 6
+
                     Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: "󰤮"
-                        color: Theme.subtextDim
-                        font.pixelSize: 36
+                        text: "‹"
+                        color: backMouse.containsMouse ? Theme.accent : Theme.fg
+                        font.pixelSize: 15
+                        font.bold: true
                         font.family: Theme.fontFamily
+                        verticalAlignment: Text.AlignVCenter
+                        Layout.alignment: Qt.AlignVCenter
                     }
+
                     Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: "No airwave transmitters detected"
-                        color: Theme.subtextDim
+                        text: "Back"
+                        color: backMouse.containsMouse ? Theme.accent : Theme.fgSoft
                         font.pixelSize: 13
+                        font.bold: true
                         font.family: Theme.fontFamily
+                        verticalAlignment: Text.AlignVCenter
+                        Layout.alignment: Qt.AlignVCenter
                     }
+                }
+
+                MouseArea {
+                    id: backMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: reconRoot.backClicked()
                 }
             }
 
-            // AP Cards Repeater
-            Repeater {
-                model: NetworkService.scanResults
+            Item { Layout.fillWidth: true }
+            MicroLabel { text: "AIRWAVE RECON" }
+            Item { Layout.fillWidth: true }
 
-                delegate: Rectangle {
-                    required property var modelData
-                    Layout.fillWidth: true
-                    implicitHeight: Math.round(58 * Theme.uiScale)
-                    radius: Math.round(12 * Theme.uiScale)
+            GhostPill {
+                label: NetworkService.isScanning ? "SCANNING" : "SCAN"
+                glyph: "󰑐"
+                onTapped: NetworkService.scan()
+            }
+        }
 
-                    readonly property bool isCurrentConnected: modelData.connected === true || (NetworkService.isConnected && modelData.ssid === NetworkService.ssid)
+        Rectangle { Layout.fillWidth: true; height: 1; color: Qt.rgba(255, 255, 255, 0.06) }
 
-                    color: isCurrentConnected 
-                        ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.12)
-                        : (itemMouse.containsMouse ? Theme.surfaceHover : Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.40))
+        // ── Empty state ──────────────────────────────────────────────
+        Item {
+            visible: NetworkService.scanResults.length === 0
+            Layout.fillWidth: true
+            implicitHeight: Math.round(150 * Theme.uiScale)
+            Column {
+                anchors.centerIn: parent
+                spacing: 10
+                Text { anchors.horizontalCenter: parent.horizontalCenter; text: "󰤮"; color: Theme.subtextDim; font.pixelSize: 34; font.family: Theme.fontFamily }
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: NetworkService.isScanning ? "Probing the airwaves…" : "No transmitters detected"
+                    color: Theme.subtextDim
+                    font.pixelSize: 13
+                    font.family: Theme.fontFamily
+                }
+            }
+        }
 
-                    border.color: isCurrentConnected
-                        ? Theme.accent
-                        : (itemMouse.containsMouse ? Qt.rgba(255, 255, 255, 0.15) : Qt.rgba(255, 255, 255, 0.05))
-                    border.width: 1
+        // ── AP list ──────────────────────────────────────────────────
+        Repeater {
+            model: NetworkService.scanResults
 
-                    Behavior on color { ColorAnimation { duration: 120 } }
-                    Behavior on border.color { ColorAnimation { duration: 120 } }
+            delegate: Rectangle {
+                id: apCard
+                required property var modelData
+
+                Layout.fillWidth: true
+                implicitHeight: apCol.implicitHeight + Math.round(28 * Theme.uiScale)
+                radius: Math.round(12 * Theme.uiScale)
+
+                readonly property bool connected: modelData.connected === true
+                    || (NetworkService.isConnected && modelData.ssid === NetworkService.ssid)
+                readonly property bool isOpen: (modelData.security || "") === "Open"
+                readonly property bool known: modelData.known === true
+                readonly property bool expanded: reconRoot.pendingSsid === modelData.ssid
+
+                color: connected
+                       ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.10)
+                       : (apHover.hovered ? Theme.surfaceHover : Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.40))
+                border.color: connected ? Theme.accent
+                             : (expanded ? Theme.accent
+                                : (apHover.hovered ? Qt.rgba(255, 255, 255, 0.14) : Qt.rgba(255, 255, 255, 0.05)))
+                border.width: 1
+
+                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on border.color { ColorAnimation { duration: 120 } }
+
+                HoverHandler { id: apHover }
+
+                ColumnLayout {
+                    id: apCol
+                    anchors.fill: parent
+                    anchors.margins: Math.round(14 * Theme.uiScale)
+                    spacing: Math.round(10 * Theme.uiScale)
 
                     RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: Math.round(18 * Theme.uiScale)
-                        anchors.rightMargin: Math.round(18 * Theme.uiScale)
+                        Layout.fillWidth: true
                         spacing: 14
 
-                        // Signal Icon helper
                         Text {
                             text: {
                                 var s = modelData.signal || -100;
@@ -220,106 +196,193 @@ ColumnLayout {
                                 if (s >= -85) return "󰤟";
                                 return "󰤯";
                             }
-                            color: isCurrentConnected ? Theme.accent : Theme.fgSoft
-                            font.pixelSize: 22
+                            color: connected ? Theme.accent : Theme.fgSoft
+                            font.pixelSize: Math.round(22 * Theme.uiScale)
                             font.family: Theme.fontFamily
                         }
 
-                        // SSID & Metadata
-                        ColumnLayout {
-                            spacing: 2
+                        Column {
+                            spacing: 3
                             Layout.fillWidth: true
 
-                            Text {
-                                text: modelData.ssid || "Hidden Network"
-                                color: isCurrentConnected ? Theme.fg : Theme.fgSoft
-                                font.pixelSize: 15
-                                font.bold: true
-                                font.family: Theme.fontFamily
-                                elide: Text.ElideRight
-                                Layout.fillWidth: true
+                            Row {
+                                spacing: 8
+                                Text {
+                                    text: modelData.ssid || "Hidden Network"
+                                    color: connected ? Theme.fg : Theme.fgSoft
+                                    font.pixelSize: Math.round(15 * Theme.uiScale)
+                                    font.bold: true
+                                    font.family: Theme.fontFamily
+                                    elide: Text.ElideRight
+                                }
+                                Rectangle {
+                                    visible: known
+                                    height: 16
+                                    width: 50
+                                    radius: 8
+                                    color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.12)
+                                    border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.35)
+                                    border.width: 1
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "KNOWN"
+                                        color: Theme.accent
+                                        font.pixelSize: 9
+                                        font.bold: true
+                                        font.letterSpacing: 0.8
+                                        font.family: Theme.fontFamily
+                                    }
+                                }
                             }
 
-                            RowLayout {
+                            Row {
                                 spacing: 8
                                 Text {
                                     text: (modelData.band || "5GHz") + " · " + (modelData.security || "WPA2")
                                     color: Theme.subtextDim
-                                    font.pixelSize: 12
+                                    font.pixelSize: Math.round(11 * Theme.uiScale)
                                     font.family: Theme.fontFamily
                                 }
-
                                 Text {
-                                    text: "·"
-                                    color: Theme.subtextDim
-                                    font.pixelSize: 12
-                                    font.family: Theme.fontFamily
                                     visible: modelData.signal !== undefined
-                                }
-
-                                Text {
-                                    text: (modelData.signal || "") + " dBm"
+                                    text: "· " + (modelData.signal || "") + " dBm"
                                     color: Theme.subtextDim
-                                    font.pixelSize: 12
+                                    font.pixelSize: Math.round(11 * Theme.uiScale)
                                     font.family: Theme.fontFamily
-                                    visible: modelData.signal !== undefined
                                 }
                             }
                         }
 
-                        // Connect / Connected Action Badge
-                        Rectangle {
-                            implicitWidth: actionText.implicitWidth + 20
-                            implicitHeight: Math.round(28 * Theme.uiScale)
-                            radius: height / 2
-                            color: isCurrentConnected 
-                                ? Qt.tint(Theme.surface, Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)) 
-                                : (connectMouse.containsMouse ? Theme.surfaceHover : Qt.rgba(0, 0, 0, 0.40))
-                            border.color: isCurrentConnected ? Theme.accent : (connectMouse.containsMouse ? Theme.accent : Qt.rgba(255, 255, 255, 0.08))
-                            border.width: 1
+                        // Action
+                        GhostPill {
+                            visible: connected
+                            label: "SEVER"
+                            accent: true
+                            onTapped: NetworkService.disconnectNetwork()
+                        }
+
+                        GhostPill {
+                            visible: !connected && known
+                            label: "REJOIN"
+                            glyph: "󰤨"
+                            accent: true
+                            onTapped: NetworkService.connectNetwork(modelData.ssid)
+                        }
+
+                        GhostPill {
+                            visible: !connected && !known && isOpen
+                            label: "ENGAGE"
+                            glyph: "󰤨"
+                            accent: true
+                            onTapped: NetworkService.connectNetwork(modelData.ssid)
+                        }
+
+                        GhostPill {
+                            visible: !connected && !known && !isOpen
+                            label: expanded ? "CANCEL" : "JOIN"
+                            glyph: "󰌾"
+                            accent: expanded
+                            onTapped: expanded ? reconRoot.abortJoin() : reconRoot.beginJoin(modelData.ssid)
+                        }
+                    }
+
+                    // Inline passphrase field (terminal cipher entry)
+                    Rectangle {
+                        Layout.fillWidth: true
+                        visible: apCard.expanded
+                        implicitHeight: credRow.implicitHeight + Math.round(20 * Theme.uiScale)
+                        radius: 9
+                        color: Qt.rgba(0, 0, 0, 0.45)
+                        border.color: passInput.activeFocus ? Theme.accent : Qt.rgba(255, 255, 255, 0.10)
+                        border.width: 1
+                        Behavior on border.color { ColorAnimation { duration: 120 } }
+
+                        RowLayout {
+                            id: credRow
+                            anchors.fill: parent
+                            anchors.margins: Math.round(10 * Theme.uiScale)
+                            spacing: 10
 
                             Text {
-                                id: actionText
-                                anchors.centerIn: parent
-                                text: isCurrentConnected ? "CONNECTED" : "CONNECT"
-                                color: isCurrentConnected ? Theme.accent : (connectMouse.containsMouse ? Theme.fg : Theme.fgSoft)
-                                font.pixelSize: 11
-                                font.bold: true
-                                font.letterSpacing: 0.8
+                                text: "󰌾"
+                                color: Theme.accent
+                                font.pixelSize: Math.round(14 * Theme.uiScale)
                                 font.family: Theme.fontFamily
                             }
 
-                            MouseArea {
-                                id: connectMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    if (!isCurrentConnected) {
-                                        NetworkService.connectNetwork(modelData.ssid);
-                                        scannerRoot.backClicked();
-                                    } else {
-                                        NetworkService.disconnectNetwork();
+                            Column {
+                                Layout.fillWidth: true
+                                spacing: 2
+                                Text {
+                                    text: "PASSPHRASE · " + (modelData.ssid || "")
+                                    color: Theme.subtextDim
+                                    font.pixelSize: Math.round(9 * Theme.uiScale)
+                                    font.bold: true
+                                    font.letterSpacing: 1.0
+                                    font.family: Theme.fontFamily
+                                }
+                                TextInput {
+                                    id: passInput
+                                    width: parent.width
+                                    height: Math.round(20 * Theme.uiScale)
+                                    verticalAlignment: TextInput.AlignVCenter
+                                    echoMode: TextInput.Password
+                                    passwordCharacter: "•"
+                                    color: Theme.fgSoft
+                                    selectionColor: Theme.accent
+                                    selectedTextColor: "#000000"
+                                    font.pixelSize: Math.round(13 * Theme.uiScale)
+                                    font.family: Theme.fontFamily
+                                    onTextChanged: reconRoot.passText = text
+                                    onAccepted: reconRoot.engage(modelData.ssid)
+
+                                    Component.onCompleted: if (apCard.expanded) forceActiveFocus()
+                                    Connections {
+                                        target: reconRoot
+                                        function onPendingSsidChanged() {
+                                            if (reconRoot.pendingSsid === modelData.ssid) {
+                                                passInput.text = "";
+                                                passInput.forceActiveFocus();
+                                            }
+                                        }
                                     }
                                 }
+                            }
+
+                            GhostPill {
+                                label: "ENGAGE"
+                                glyph: "󰄬"
+                                accent: true
+                                onTapped: reconRoot.engage(modelData.ssid)
                             }
                         }
                     }
 
-                    MouseArea {
-                        id: itemMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (!isCurrentConnected) {
-                                NetworkService.connectNetwork(modelData.ssid);
-                                scannerRoot.backClicked();
+                    // Explicit disconnect / forget actions for the live link
+                    Row {
+                        visible: connected
+                        spacing: 16
+                        Text {
+                            text: "FORGET NETWORK"
+                            color: forgetMouse.containsMouse ? Theme.urgent : Theme.subtextDim
+                            font.pixelSize: Math.round(10 * Theme.uiScale)
+                            font.bold: true
+                            font.letterSpacing: 0.8
+                            font.family: Theme.fontFamily
+                            MouseArea {
+                                id: forgetMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: NetworkService.forgetNetwork(modelData.ssid)
                             }
                         }
                     }
                 }
+
             }
         }
+
+        Item { Layout.fillWidth: true; Layout.preferredHeight: Math.round(4 * Theme.uiScale) }
     }
 }

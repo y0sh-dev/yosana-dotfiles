@@ -3,54 +3,162 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
+// Bluetooth state bridge. Polling is gated by `active` (set by the panel while
+// it is open) so the shell stays at zero idle wakeups when the deck is closed.
 QtObject {
     id: bluetoothService
 
-    property bool isPowered: true
-    property int connectedCount: 0
-    property string activeDeviceName: "No Device Connected"
-    property var devices: [
-        { name: "Sony WH-1000XM5", mac: "CC:98:8B:12:34:56", connected: true, type: "audio" },
-        { name: "HHKB Studio", mac: "E4:5F:01:78:9A:BC", connected: false, type: "keyboard" }
-    ]
+    readonly property string script: "/home/yukkkk1/.config/quickshell/scripts/bt_manager.py"
 
-    // Background process to check bluetooth status via bluetoothctl
-    property var btStatusProc: Process {
-        id: btStatusProcess
-        command: ["sh", "-c", "bluetoothctl show 2>/dev/null | grep 'Powered:'"]
-        stdout: StdioCollector {
-            onDataChanged: {
-                var raw = (data || "").toString().trim();
-                if (raw.indexOf("yes") !== -1) {
-                    bluetoothService.isPowered = true;
-                } else if (raw.indexOf("no") !== -1) {
-                    bluetoothService.isPowered = false;
-                }
-            }
+    property bool active: false
+
+    property bool isPowered: false
+    property bool isDiscovering: false
+    property bool isScanning: false
+    property string controllerName: ""
+    property string controllerMac: ""
+    property var devices: []       // paired peripherals
+    property var discovered: []    // last scan result (paired + discovered)
+
+    // Type glyph mapping (Nerd Font)
+    function glyphFor(type) {
+        switch (type) {
+        case "audio":    return "󰋋";
+        case "keyboard": return "󰌌";
+        case "mouse":    return "󰍽";
+        case "gamepad":  return "󰄡";
+        case "phone":    return "󰏲";
+        default:         return "󰂯";
         }
     }
 
-    property var btCheckTimer: Timer {
-        interval: 5000
-        running: true
-        repeat: true
-        onTriggered: {
-            if (!btStatusProcess.running) {
-                btStatusProcess.running = true;
-            }
+    readonly property var connectedDevices: devices.filter(function(d) { return d.connected; })
+    readonly property int connectedCount: connectedDevices.length
+    readonly property var activeDevice: connectedCount > 0 ? connectedDevices[0] : null
+
+    // Unpaired beacons only (paired devices live in the "Paired" deck).
+    readonly property var newBeacons: discovered.filter(function(d) { return !d.paired; })
+
+    // ── Processes ───────────────────────────────────────────────────
+    property var statusProc: Process {
+        id: statusProcess
+        command: ["python3", bluetoothService.script, "status"]
+        stdout: StdioCollector {
+            onDataChanged: bluetoothService.applyStatus((data || "").toString())
         }
+    }
+
+    property var scanProc: Process {
+        id: scanProcess
+        command: ["python3", bluetoothService.script, "scan", "7"]
+        stdout: StdioCollector {
+            onDataChanged: bluetoothService.applyScan((data || "").toString())
+        }
+        onExited: {
+            bluetoothService.isScanning = false;
+            bluetoothService.refresh();
+        }
+    }
+
+    // Generic action runner (command swapped per action).
+    property var actionProc: Process {
+        id: actionProcess
+        onExited: bluetoothService.refresh()
+    }
+
+    property var pollTimer: Timer {
+        interval: 6000
+        repeat: true
+        running: bluetoothService.active
+        onTriggered: bluetoothService.refresh()
+    }
+
+    property var powerRefreshTimer: Timer {
+        interval: 1500
+        repeat: false
+        onTriggered: bluetoothService.refresh()
+    }
+
+    // ── Parsers ─────────────────────────────────────────────────────
+    function applyStatus(raw) {
+        var t = (raw || "").trim();
+        if (!t) return;
+        try {
+            var o = JSON.parse(t);
+            bluetoothService.isPowered = !!o.powered;
+            bluetoothService.isDiscovering = !!o.discovering;
+            bluetoothService.controllerName = o.controllerName || "";
+            bluetoothService.controllerMac = o.controllerMac || "";
+            bluetoothService.devices = o.devices || [];
+
+            // Reconcile stale discovery entries: once a beacon is paired it
+            // should leave the "new beacons" deck immediately.
+            var pairedMacs = {};
+            for (var i = 0; i < bluetoothService.devices.length; i++) {
+                pairedMacs[bluetoothService.devices[i].mac] = true;
+            }
+            if (bluetoothService.discovered.length > 0) {
+                var upd = [];
+                for (var j = 0; j < bluetoothService.discovered.length; j++) {
+                    var src = bluetoothService.discovered[j];
+                    var dst = {};
+                    for (var k in src) dst[k] = src[k];
+                    if (pairedMacs[dst.mac]) dst.paired = true;
+                    upd.push(dst);
+                }
+                bluetoothService.discovered = upd;
+            }
+        } catch (e) {}
+    }
+
+    function applyScan(raw) {
+        var t = (raw || "").trim();
+        if (!t) return;
+        try {
+            var o = JSON.parse(t);
+            if (o.powered !== undefined) bluetoothService.isPowered = !!o.powered;
+            bluetoothService.discovered = o.devices || [];
+        } catch (e) {}
+    }
+
+    // ── Control surface ─────────────────────────────────────────────
+    function refresh() {
+        if (bluetoothService.active && !statusProcess.running && !scanProcess.running) {
+            statusProcess.running = true;
+        }
+    }
+
+    function scan() {
+        if (!bluetoothService.isPowered || scanProcess.running) return;
+        bluetoothService.isScanning = true;
+        scanProcess.running = true;
+    }
+
+    function runAction(args) {
+        if (actionProcess.running) return;
+        actionProcess.command = ["python3", bluetoothService.script].concat(args);
+        actionProcess.running = true;
     }
 
     function togglePower() {
-        isPowered = !isPowered;
-        Quickshell.execDetached(["bluetoothctl", "power", isPowered ? "on" : "off"]);
+        var target = !bluetoothService.isPowered;
+        bluetoothService.isPowered = target; // optimistic, corrected by refresh
+        runAction(["power", target ? "on" : "off"]);
+        powerRefreshTimer.restart();
     }
 
-    function connectDevice(mac) {
-        Quickshell.execDetached(["bluetoothctl", "connect", mac]);
+    function connectDevice(mac)    { runAction(["connect", mac]); }
+    function disconnectDevice(mac) { runAction(["disconnect", mac]); }
+    function pairDevice(mac)       { runAction(["pair", mac]); }
+    function trustDevice(mac)      { runAction(["trust", mac]); }
+    function adoptDevice(mac)      { runAction(["adopt", mac]); }
+    function removeDevice(mac)     { runAction(["remove", mac]); }
+
+    onActiveChanged: {
+        if (active) refresh();
     }
 
-    function disconnectDevice(mac) {
-        Quickshell.execDetached(["bluetoothctl", "disconnect", mac]);
+    Component.onCompleted: {
+        if (active) refresh();
     }
 }

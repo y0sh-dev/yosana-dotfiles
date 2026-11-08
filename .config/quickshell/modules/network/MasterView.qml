@@ -1,577 +1,454 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import "../../services"
+import "../../components"
 
-ColumnLayout {
-    id: masterViewRoot
+// UPLINK deck — carrier identity, live telemetry, and compact jumps into the
+// Mesh / Peripherals rails. Whole page scrolls internally; the window never
+// changes size.
+Flickable {
+    id: uplinkRoot
 
     signal scanRequested()
     signal meshRequested()
     signal bluetoothRequested()
 
-    spacing: Math.round(14 * Theme.uiScale)
+    contentWidth: width - 10
+    contentHeight: contentLayout.implicitHeight
+    clip: true
+    boundsBehavior: Flickable.StopAtBounds
 
-    // =========================================================================
-    // CARD 1: PRIMARY UPLINK & CARRIER (Surface Container)
-    // =========================================================================
-    Rectangle {
-        Layout.fillWidth: true
-        Layout.preferredHeight: Math.round(200 * Theme.uiScale)
-        radius: Math.round(16 * Theme.uiScale)
-        color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.45)
-        border.color: Qt.rgba(255, 255, 255, 0.06)
-        border.width: 1
+    ScrollBar.vertical: ModernScrollBar { targetFlickable: uplinkRoot }
 
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: Math.round(20 * Theme.uiScale)
-            spacing: Math.round(14 * Theme.uiScale)
+    // ── Small reusable style helpers ────────────────────────────────
+    ColumnLayout {
+        id: contentLayout
+        width: uplinkRoot.contentWidth
+        spacing: Math.round(16 * Theme.uiScale)
 
-            // Header: Category Indicator + Airwave Scan Button Pill
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 8
+        // ═════════════════════════════════════════════════════════════
+        // CARD 1 — PRIMARY UPLINK
+        // ═════════════════════════════════════════════════════════════
+        Rectangle {
+            Layout.fillWidth: true
+            implicitHeight: uplinkCol.implicitHeight + Math.round(44 * Theme.uiScale)
+            radius: Math.round(16 * Theme.uiScale)
+            color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.45)
+            border.color: Qt.rgba(255, 255, 255, 0.06)
+            border.width: 1
 
+            ColumnLayout {
+                id: uplinkCol
+                anchors.fill: parent
+                anchors.margins: Math.round(22 * Theme.uiScale)
+                spacing: Math.round(15 * Theme.uiScale)
+
+                // Header
                 RowLayout {
-                    spacing: 8
+                    Layout.fillWidth: true
+                    spacing: 9
+
                     Rectangle {
-                        width: 7
-                        height: 7
-                        radius: 3.5
+                        width: 6; height: 6; radius: 3
                         color: NetworkService.isConnected ? Theme.accent : Theme.urgent
+                        Behavior on color { ColorAnimation { duration: 200 } }
                     }
-                    Text {
-                        text: "PRIMARY UPLINK"
-                        color: Theme.subtextDim
-                        font.pixelSize: 12
-                        font.bold: true
-                        font.letterSpacing: 1.1
-                        font.family: Theme.fontFamily
+                    MicroLabel { text: "PRIMARY UPLINK" }
+                    Item { Layout.fillWidth: true }
+                    GhostPill {
+                        glyph: "󰤨"
+                        label: "RECON AIRWAVE"
+                        onTapped: uplinkRoot.scanRequested()
                     }
                 }
 
-                Item { Layout.fillWidth: true }
+                // Identity
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 16
 
-                // Airwave Recon / Wi-Fi Scanner Pill Button: [ 󰤨 SSID › ]
-                Rectangle {
-                    implicitHeight: Math.round(30 * Theme.uiScale)
-                    implicitWidth: ssidPillLayout.implicitWidth + 24
-                    radius: height / 2
-                    color: ssidPillMouse.containsMouse ? Theme.surfaceHover : Qt.rgba(0, 0, 0, 0.45)
-                    border.color: ssidPillMouse.containsMouse ? Theme.accent : Qt.rgba(255, 255, 255, 0.08)
-                    border.width: 1
+                    Text {
+                        text: NetworkService.icon
+                        color: NetworkService.isConnected ? Theme.accent : Theme.subtextDim
+                        font.pixelSize: Math.round(46 * Theme.uiScale)
+                        font.family: Theme.fontFamily
+                        Layout.alignment: Qt.AlignVCenter
+                        Behavior on color { ColorAnimation { duration: 220 } }
+                    }
 
-                    scale: ssidPillMouse.pressed ? 0.96 : 1.0
-                    Behavior on scale { NumberAnimation { duration: 100 } }
-                    Behavior on color { ColorAnimation { duration: 120 } }
-                    Behavior on border.color { ColorAnimation { duration: 120 } }
-
-                    RowLayout {
-                        id: ssidPillLayout
-                        anchors.centerIn: parent
-                        spacing: 8
-
-                        Text {
-                            text: NetworkService.icon
-                            color: ssidPillMouse.containsMouse ? Theme.accent : Theme.fgSoft
-                            font.pixelSize: 14
-                            font.family: Theme.fontFamily
-                        }
+                    Column {
+                        spacing: 4
+                        Layout.alignment: Qt.AlignVCenter
 
                         Text {
                             text: NetworkService.isConnected ? NetworkService.ssid : "No Carrier"
-                            color: ssidPillMouse.containsMouse ? Theme.fg : Theme.fgSoft
-                            font.pixelSize: 13
+                            color: Theme.fgSoft
+                            font.pixelSize: Math.round(22 * Theme.uiScale)
                             font.bold: true
                             font.family: Theme.fontFamily
-                            elide: Text.ElideRight
-                            Layout.maximumWidth: Math.round(240 * Theme.uiScale)
                         }
 
                         Text {
-                            text: "›"
-                            color: ssidPillMouse.containsMouse ? Theme.accent : Theme.subtextDim
-                            font.pixelSize: 15
-                            font.bold: true
+                            text: NetworkService.isConnected
+                                  ? (NetworkService.band + "  ·  " + NetworkService.freq + "  ·  PHY " + NetworkService.phyRate)
+                                  : "Uplink severed"
+                            color: Theme.subtextDim
+                            font.pixelSize: Math.round(12 * Theme.uiScale)
                             font.family: Theme.fontFamily
                         }
                     }
 
-                    MouseArea {
-                        id: ssidPillMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: masterViewRoot.scanRequested()
-                    }
-                }
-            }
+                    Item { Layout.fillWidth: true }
 
-            // Specs & Identity: Large Carrier Glyph + SSID + Frequency
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: Math.round(16 * Theme.uiScale)
+                    // Sever / status affordance
+                    Column {
+                        spacing: 4
+                        Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
 
-                Text {
-                    text: NetworkService.icon
-                    color: Theme.accent
-                    font.pixelSize: Math.round(48 * Theme.uiScale)
-                    font.family: Theme.fontFamily
-                    Layout.alignment: Qt.AlignVCenter
-                }
+                        Text {
+                            anchors.right: parent.right
+                            text: NetworkService.isConnected ? "LINK NOMINAL" : "LINK DOWN"
+                            color: NetworkService.isConnected ? Theme.accent : Theme.urgent
+                            font.pixelSize: Math.round(10 * Theme.uiScale)
+                            font.bold: true
+                            font.letterSpacing: 1.2
+                            font.family: Theme.fontFamily
+                        }
 
-                Column {
-                    spacing: 3
-                    Layout.alignment: Qt.AlignVCenter
+                        Text {
+                            id: severText
+                            anchors.right: parent.right
+                            visible: NetworkService.isConnected
+                            text: "SEVER UPLINK"
+                            color: severMouse.containsMouse ? Theme.urgent : Theme.subtextDim
+                            font.pixelSize: Math.round(10 * Theme.uiScale)
+                            font.bold: true
+                            font.letterSpacing: 1.0
+                            font.family: Theme.fontFamily
+                            Behavior on color { ColorAnimation { duration: 120 } }
 
-                    Text {
-                        text: NetworkService.isConnected ? NetworkService.ssid : "Disconnected"
-                        color: Theme.fgSoft
-                        font.pixelSize: Math.round(20 * Theme.uiScale)
-                        font.bold: true
-                        font.family: Theme.fontFamily
-                    }
-
-                    Text {
-                        text: NetworkService.band + " · " + NetworkService.freq + " · PHY " + NetworkService.phyRate
-                        color: Theme.subtextDim
-                        font.pixelSize: Math.round(13 * Theme.uiScale)
-                        font.family: Theme.fontFamily
+                            MouseArea {
+                                id: severMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: NetworkService.disconnectNetwork()
+                            }
+                        }
                     }
                 }
 
-                Item { Layout.fillWidth: true }
-            }
-
-            // Minimalist Metrics Row: IP, Signal dBm, Latency / Throughput
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: Math.round(8 * Theme.uiScale)
-
-                // Pill 1: IP Address
+                // Hairline
                 Rectangle {
                     Layout.fillWidth: true
-                    implicitHeight: Math.round(32 * Theme.uiScale)
-                    radius: Math.round(8 * Theme.uiScale)
-                    color: Qt.rgba(1, 1, 1, 0.03)
-                    border.color: Qt.rgba(255, 255, 255, 0.05)
-                    border.width: 1
+                    height: 1
+                    color: Qt.rgba(255, 255, 255, 0.06)
+                }
 
-                    Row {
-                        anchors.centerIn: parent
-                        spacing: 6
-                        Text {
-                            text: "󰩟"
-                            color: Theme.accent
-                            font.pixelSize: 13
-                            font.family: Theme.fontFamily
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
+                // Telemetry strip: IP · SIGNAL · LATENCY
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 16
+
+                    Column {
+                        spacing: 5
+                        MicroLabel { text: "IP ADDRESS" }
                         Text {
                             text: NetworkService.ip
                             color: Theme.fgSoft
-                            font.pixelSize: 12
+                            font.pixelSize: Math.round(14 * Theme.uiScale)
                             font.bold: true
                             font.family: Theme.fontFamily
-                            anchors.verticalCenter: parent.verticalCenter
                         }
                     }
-                }
 
-                // Pill 2: Signal Strength
-                Rectangle {
-                    Layout.fillWidth: true
-                    implicitHeight: Math.round(32 * Theme.uiScale)
-                    radius: Math.round(8 * Theme.uiScale)
-                    color: Qt.rgba(1, 1, 1, 0.03)
-                    border.color: Qt.rgba(255, 255, 255, 0.05)
-                    border.width: 1
+                    Rectangle { width: 1; height: Math.round(28 * Theme.uiScale); color: Qt.rgba(255, 255, 255, 0.06) }
 
-                    Row {
-                        anchors.centerIn: parent
-                        spacing: 6
-                        Text {
-                            text: "󰤨"
-                            color: Theme.accent
-                            font.pixelSize: 13
-                            font.family: Theme.fontFamily
-                            anchors.verticalCenter: parent.verticalCenter
+                    Column {
+                        spacing: 5
+                        MicroLabel { text: "SIGNAL" }
+                        Row {
+                            spacing: 8
+                            Row {
+                                id: sigRow
+                                height: Math.round(18 * Theme.uiScale)
+                                spacing: 3
+                                Repeater {
+                                    model: 5
+                                    Rectangle {
+                                        width: 3
+                                        height: 5 + index * 3
+                                        radius: 1
+                                        y: sigRow.height - height
+                                        color: ((index + 1) / 5.0) <= (NetworkService.signalQuality + 0.001)
+                                               ? Theme.accent
+                                               : Qt.rgba(255, 255, 255, 0.09)
+                                        Behavior on color { ColorAnimation { duration: 180 } }
+                                    }
+                                }
+                            }
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: NetworkService.isConnected ? (NetworkService.rssi + " dBm") : "—"
+                                color: Theme.fgSoft
+                                font.pixelSize: Math.round(13 * Theme.uiScale)
+                                font.bold: true
+                                font.family: Theme.fontFamily
+                            }
                         }
+                    }
+
+                    Rectangle { width: 1; height: Math.round(28 * Theme.uiScale); color: Qt.rgba(255, 255, 255, 0.06) }
+
+                    Column {
+                        spacing: 5
+                        MicroLabel { text: "ROUND TRIP" }
                         Text {
-                            text: NetworkService.isConnected ? (NetworkService.rssi + " dBm") : "--"
+                            text: NetworkService.rtt
                             color: Theme.fgSoft
-                            font.pixelSize: 12
+                            font.pixelSize: Math.round(14 * Theme.uiScale)
                             font.bold: true
                             font.family: Theme.fontFamily
-                            anchors.verticalCenter: parent.verticalCenter
                         }
                     }
+
+                    Item { Layout.fillWidth: true }
                 }
 
-                // Pill 3: Ping & Realtime Throughput
-                Rectangle {
+                // Throughput ribbon (live receive histogram)
+                ColumnLayout {
                     Layout.fillWidth: true
-                    implicitHeight: Math.round(32 * Theme.uiScale)
-                    radius: Math.round(8 * Theme.uiScale)
-                    color: Qt.rgba(1, 1, 1, 0.03)
-                    border.color: Qt.rgba(255, 255, 255, 0.05)
-                    border.width: 1
-
-                    Row {
-                        anchors.centerIn: parent
-                        spacing: 6
-                        Text {
-                            text: "󰓅"
-                            color: Theme.accent
-                            font.pixelSize: 13
-                            font.family: Theme.fontFamily
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        Text {
-                            text: NetworkService.rtt + " · ▲" + NetworkService.txRate + " ▼" + NetworkService.rxRate
-                            color: Theme.fgSoft
-                            font.pixelSize: 11
-                            font.bold: true
-                            font.family: Theme.fontFamily
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // =========================================================================
-    // CARD 2: ENCRYPTED MESH & AUTONOMOUS DEFENSE (Surface Container)
-    // =========================================================================
-    Rectangle {
-        Layout.fillWidth: true
-        Layout.preferredHeight: Math.round(155 * Theme.uiScale)
-        radius: Math.round(16 * Theme.uiScale)
-        color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.45)
-        border.color: Qt.rgba(255, 255, 255, 0.06)
-        border.width: 1
-
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: Math.round(20 * Theme.uiScale)
-            spacing: Math.round(12 * Theme.uiScale)
-
-            // Header: Category + Details Navigation Pill
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 8
-
-                RowLayout {
-                    spacing: 8
-                    Rectangle {
-                        width: 7
-                        height: 7
-                        radius: 3.5
-                        color: NetworkService.tailscaleActive ? Theme.accent : Theme.subtextDim
-                    }
-                    Text {
-                        text: "ENCRYPTED MESH & ROUTING"
-                        color: Theme.subtextDim
-                        font.pixelSize: 12
-                        font.bold: true
-                        font.letterSpacing: 1.1
-                        font.family: Theme.fontFamily
-                    }
-                }
-
-                Item { Layout.fillWidth: true }
-
-                // Routing Details Pill: [ 󰒃 Details › ]
-                Rectangle {
-                    implicitHeight: Math.round(28 * Theme.uiScale)
-                    implicitWidth: meshPillLayout.implicitWidth + 20
-                    radius: height / 2
-                    color: meshPillMouse.containsMouse ? Theme.surfaceHover : Qt.rgba(0, 0, 0, 0.45)
-                    border.color: meshPillMouse.containsMouse ? Theme.accent : Qt.rgba(255, 255, 255, 0.08)
-                    border.width: 1
-
-                    scale: meshPillMouse.pressed ? 0.96 : 1.0
-                    Behavior on scale { NumberAnimation { duration: 100 } }
-                    Behavior on color { ColorAnimation { duration: 120 } }
-                    Behavior on border.color { ColorAnimation { duration: 120 } }
+                    spacing: 7
 
                     RowLayout {
-                        id: meshPillLayout
-                        anchors.centerIn: parent
-                        spacing: 6
-
+                        Layout.fillWidth: true
+                        spacing: 10
+                        MicroLabel { text: "THROUGHPUT" }
+                        Item { Layout.fillWidth: true }
                         Text {
-                            text: "󰒃"
-                            color: meshPillMouse.containsMouse ? Theme.accent : Theme.fgSoft
-                            font.pixelSize: 13
-                            font.family: Theme.fontFamily
-                        }
-
-                        Text {
-                            text: "Routing Details"
-                            color: meshPillMouse.containsMouse ? Theme.fg : Theme.fgSoft
-                            font.pixelSize: 12
-                            font.bold: true
-                            font.family: Theme.fontFamily
-                        }
-
-                        Text {
-                            text: "›"
-                            color: meshPillMouse.containsMouse ? Theme.accent : Theme.subtextDim
-                            font.pixelSize: 14
+                            text: "▲ " + NetworkService.txRate + "    ▼ " + NetworkService.rxRate
+                            color: Theme.subtextDim
+                            font.pixelSize: Math.round(11 * Theme.uiScale)
                             font.bold: true
                             font.family: Theme.fontFamily
                         }
                     }
 
-                    MouseArea {
-                        id: meshPillMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: masterViewRoot.meshRequested()
-                    }
-                }
-            }
-
-            // Item 1: Tailscale WireGuard Mesh
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 12
-
-                Text {
-                    text: "󰖂"
-                    color: NetworkService.tailscaleActive ? Theme.accent : Theme.subtextDim
-                    font.pixelSize: 20
-                    font.family: Theme.fontFamily
-                }
-
-                Column {
-                    spacing: 2
-                    Text {
-                        text: "Tailscale WireGuard Mesh"
-                        color: Theme.fgSoft
-                        font.pixelSize: 13
-                        font.bold: true
-                        font.family: Theme.fontFamily
-                    }
-                    Text {
-                        text: NetworkService.tailscaleActive ? ("Mesh IP: " + NetworkService.tailscaleIp + " · MagicDNS") : "Tunnel Offline"
-                        color: Theme.subtextDim
-                        font.pixelSize: 11
-                        font.family: Theme.fontFamily
-                    }
-                }
-
-                Item { Layout.fillWidth: true }
-
-                // Quick Toggle Pill: [ ACTIVE ]
-                Rectangle {
-                    implicitWidth: tsPillText.implicitWidth + 20
-                    implicitHeight: 26
-                    radius: 13
-                    color: NetworkService.tailscaleActive ? Qt.tint(Theme.surface, Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)) : Qt.rgba(0, 0, 0, 0.45)
-                    border.color: NetworkService.tailscaleActive ? Theme.accent : Theme.border
-                    border.width: 1
-
-                    Text {
-                        id: tsPillText
-                        anchors.centerIn: parent
-                        text: NetworkService.tailscaleActive ? "ACTIVE" : "OFF"
-                        color: NetworkService.tailscaleActive ? Theme.accent : Theme.subtextDim
-                        font.pixelSize: 11
-                        font.bold: true
-                        font.letterSpacing: 0.8
-                        font.family: Theme.fontFamily
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: NetworkService.toggleTailscale()
-                    }
-                }
-            }
-
-            // Item 2: Zero-Trust DNS & CAKE qdisc
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 12
-
-                Text {
-                    text: "󰒃"
-                    color: Theme.accent
-                    font.pixelSize: 20
-                    font.family: Theme.fontFamily
-                }
-
-                Column {
-                    spacing: 2
-                    Text {
-                        text: "Zero-Trust DNS & Shaping"
-                        color: Theme.fgSoft
-                        font.pixelSize: 13
-                        font.bold: true
-                        font.family: Theme.fontFamily
-                    }
-                    Text {
-                        text: NetworkService.dnsStatus + " · CAKE " + NetworkService.cakeStatus
-                        color: Theme.subtextDim
-                        font.pixelSize: 11
-                        font.family: Theme.fontFamily
-                    }
-                }
-
-                Item { Layout.fillWidth: true }
-
-                Rectangle {
-                    implicitWidth: dnsBadgeText.implicitWidth + 18
-                    implicitHeight: 24
-                    radius: 12
-                    color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.15)
-                    border.color: Theme.accent
-                    border.width: 1
-
-                    Text {
-                        id: dnsBadgeText
-                        anchors.centerIn: parent
-                        text: "PROTECTED"
-                        color: Theme.accent
-                        font.pixelSize: 10
-                        font.bold: true
-                        font.letterSpacing: 0.8
-                        font.family: Theme.fontFamily
+                    Row {
+                        id: sparkRow
+                        height: Math.round(26 * Theme.uiScale)
+                        spacing: 1
+                        readonly property var hist: NetworkService.rxHistory
+                        readonly property real maxV: {
+                            var m = 1;
+                            for (var i = 0; i < hist.length; i++) if (hist[i] > m) m = hist[i];
+                            return m;
+                        }
+                        Repeater {
+                            model: NetworkService.historyDepth
+                            Rectangle {
+                                width: 3
+                                height: Math.max(2, 2 + ((sparkRow.hist[index] || 0) / sparkRow.maxV) * (sparkRow.height - 4))
+                                y: sparkRow.height - height
+                                radius: 1
+                                color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b,
+                                               0.16 + 0.55 * (index / Math.max(1, NetworkService.historyDepth - 1)))
+                            }
+                        }
                     }
                 }
             }
         }
-    }
 
-    // =========================================================================
-    // CARD 3: WIRELESS PERIPHERALS (BLUETOOTH)
-    // =========================================================================
-    Rectangle {
-        Layout.fillWidth: true
-        Layout.preferredHeight: Math.round(140 * Theme.uiScale)
-        radius: Math.round(16 * Theme.uiScale)
-        color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.45)
-        border.color: Qt.rgba(255, 255, 255, 0.06)
-        border.width: 1
+        // ═════════════════════════════════════════════════════════════
+        // CARD 2 — ENCRYPTED MESH (summary → MESH rail)
+        // ═════════════════════════════════════════════════════════════
+        Rectangle {
+            Layout.fillWidth: true
+            implicitHeight: meshCol.implicitHeight + Math.round(40 * Theme.uiScale)
+            radius: Math.round(16 * Theme.uiScale)
+            color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.45)
+            border.color: Qt.rgba(255, 255, 255, 0.06)
+            border.width: 1
 
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: Math.round(20 * Theme.uiScale)
-            spacing: Math.round(12 * Theme.uiScale)
-
-            // Header: Category Indicator
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 8
+            ColumnLayout {
+                id: meshCol
+                anchors.fill: parent
+                anchors.margins: Math.round(20 * Theme.uiScale)
+                spacing: Math.round(13 * Theme.uiScale)
 
                 RowLayout {
-                    spacing: 8
+                    Layout.fillWidth: true
+                    spacing: 9
                     Rectangle {
-                        width: 7
-                        height: 7
-                        radius: 3.5
-                        color: BluetoothService.isPowered ? Theme.accent : Theme.subtextDim
+                        width: 6; height: 6; radius: 3
+                        color: NetworkService.tailscaleActive ? Theme.accent : Theme.subtextDim
                     }
+                    MicroLabel { text: "ENCRYPTED MESH" }
+                    Item { Layout.fillWidth: true }
+                    GhostPill {
+                        glyph: "󰒃"
+                        label: "ROUTING DETAILS"
+                        onTapped: uplinkRoot.meshRequested()
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 14
+
                     Text {
-                        text: "WIRELESS PERIPHERALS"
-                        color: Theme.subtextDim
-                        font.pixelSize: 12
+                        text: "󰖂"
+                        color: NetworkService.tailscaleActive ? Theme.accent : Theme.subtextDim
+                        font.pixelSize: Math.round(20 * Theme.uiScale)
+                        font.family: Theme.fontFamily
+                    }
+                    Column {
+                        spacing: 2
+                        Text {
+                            text: "Tailscale WireGuard"
+                            color: Theme.fgSoft
+                            font.pixelSize: Math.round(13 * Theme.uiScale)
+                            font.bold: true
+                            font.family: Theme.fontFamily
+                        }
+                        Text {
+                            text: NetworkService.tailscaleActive
+                                  ? ("Mesh " + NetworkService.tailscaleIp + " · MagicDNS")
+                                  : "Tunnel offline"
+                            color: Theme.subtextDim
+                            font.pixelSize: Math.round(11 * Theme.uiScale)
+                            font.family: Theme.fontFamily
+                        }
+                    }
+                    Item { Layout.fillWidth: true }
+                    Text {
+                        text: NetworkService.tailscaleActive ? "ACTIVE" : "OFF"
+                        color: NetworkService.tailscaleActive ? Theme.accent : Theme.subtextDim
+                        font.pixelSize: Math.round(10 * Theme.uiScale)
                         font.bold: true
-                        font.letterSpacing: 1.1
+                        font.letterSpacing: 1.0
                         font.family: Theme.fontFamily
                     }
                 }
 
-                Item { Layout.fillWidth: true }
-
-                // Quick Toggle Pill: [ ACTIVE ]
-                Rectangle {
-                    implicitWidth: btPillText.implicitWidth + 20
-                    implicitHeight: 26
-                    radius: 13
-                    color: BluetoothService.isPowered ? Qt.tint(Theme.surface, Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)) : Qt.rgba(0, 0, 0, 0.45)
-                    border.color: BluetoothService.isPowered ? Theme.accent : Theme.border
-                    border.width: 1
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 14
 
                     Text {
-                        id: btPillText
-                        anchors.centerIn: parent
-                        text: BluetoothService.isPowered ? "ACTIVE" : "OFF"
-                        color: BluetoothService.isPowered ? Theme.accent : Theme.subtextDim
-                        font.pixelSize: 11
-                        font.bold: true
-                        font.letterSpacing: 0.8
+                        text: "󰒃"
+                        color: Theme.accent
+                        font.pixelSize: Math.round(20 * Theme.uiScale)
                         font.family: Theme.fontFamily
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: BluetoothService.togglePower()
+                    Column {
+                        spacing: 2
+                        Text {
+                            text: "Zero-Trust DNS & Shaping"
+                            color: Theme.fgSoft
+                            font.pixelSize: Math.round(13 * Theme.uiScale)
+                            font.bold: true
+                            font.family: Theme.fontFamily
+                        }
+                        Text {
+                            text: NetworkService.dnsStatus + " · CAKE " + NetworkService.cakeStatus
+                            color: Theme.subtextDim
+                            font.pixelSize: Math.round(11 * Theme.uiScale)
+                            font.family: Theme.fontFamily
+                        }
                     }
-                }
-            }
-
-            // Bluetooth Status & Device Details
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 12
-
-                Text {
-                    text: "󰂯"
-                    color: BluetoothService.isPowered ? Theme.accent : Theme.subtextDim
-                    font.pixelSize: 22
-                    font.family: Theme.fontFamily
-                }
-
-                Column {
-                    spacing: 2
+                    Item { Layout.fillWidth: true }
                     Text {
-                        text: BluetoothService.isPowered ? "Bluetooth Controller" : "Controller Disabled"
-                        color: Theme.fgSoft
-                        font.pixelSize: 13
+                        text: "PROTECTED"
+                        color: Theme.accent
+                        font.pixelSize: Math.round(10 * Theme.uiScale)
                         font.bold: true
-                        font.family: Theme.fontFamily
-                    }
-                    Text {
-                        text: BluetoothService.isPowered 
-                            ? (BluetoothService.devices.length > 0 ? (BluetoothService.devices[0].name + " (Paired)") : "Zero Connected Devices")
-                            : "Radio powered down"
-                        color: Theme.subtextDim
-                        font.pixelSize: 11
-                        font.family: Theme.fontFamily
-                    }
-                }
-
-                Item { Layout.fillWidth: true }
-
-                Rectangle {
-                    implicitWidth: btBadgeText.implicitWidth + 18
-                    implicitHeight: 24
-                    radius: 12
-                    color: Qt.rgba(1, 1, 1, 0.03)
-                    border.color: Qt.rgba(255, 255, 255, 0.08)
-                    border.width: 1
-
-                    Text {
-                        id: btBadgeText
-                        anchors.centerIn: parent
-                        text: BluetoothService.isPowered ? "STANDBY" : "OFFLINE"
-                        color: Theme.subtextDim
-                        font.pixelSize: 10
-                        font.bold: true
-                        font.letterSpacing: 0.8
+                        font.letterSpacing: 1.0
                         font.family: Theme.fontFamily
                     }
                 }
             }
         }
+
+        // ═════════════════════════════════════════════════════════════
+        // CARD 3 — WIRELESS PERIPHERALS (summary → PERIPHERALS rail)
+        // ═════════════════════════════════════════════════════════════
+        Rectangle {
+            Layout.fillWidth: true
+            implicitHeight: periphCol.implicitHeight + Math.round(40 * Theme.uiScale)
+            radius: Math.round(16 * Theme.uiScale)
+            color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.45)
+            border.color: Qt.rgba(255, 255, 255, 0.06)
+            border.width: 1
+
+            ColumnLayout {
+                id: periphCol
+                anchors.fill: parent
+                anchors.margins: Math.round(20 * Theme.uiScale)
+                spacing: Math.round(13 * Theme.uiScale)
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 9
+                    Rectangle {
+                        width: 6; height: 6; radius: 3
+                        color: BluetoothService.isPowered ? Theme.accent : Theme.subtextDim
+                    }
+                    MicroLabel { text: "WIRELESS PERIPHERALS" }
+                    Item { Layout.fillWidth: true }
+                    GhostPill {
+                        glyph: "󰂯"
+                        label: "MANAGE"
+                        onTapped: uplinkRoot.bluetoothRequested()
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 14
+
+                    Text {
+                        text: "󰂯"
+                        color: BluetoothService.isPowered ? Theme.accent : Theme.subtextDim
+                        font.pixelSize: Math.round(20 * Theme.uiScale)
+                        font.family: Theme.fontFamily
+                    }
+                    Column {
+                        spacing: 2
+                        Text {
+                            text: BluetoothService.isPowered ? "Bluetooth Controller" : "Radio Powered Down"
+                            color: Theme.fgSoft
+                            font.pixelSize: Math.round(13 * Theme.uiScale)
+                            font.bold: true
+                            font.family: Theme.fontFamily
+                        }
+                        Text {
+                            text: !BluetoothService.isPowered
+                                  ? "No active radio"
+                                  : (BluetoothService.activeDevice
+                                     ? (BluetoothService.activeDevice.name + " · linked")
+                                     : (BluetoothService.devices.length + " paired · none linked"))
+                            color: Theme.subtextDim
+                            font.pixelSize: Math.round(11 * Theme.uiScale)
+                            font.family: Theme.fontFamily
+                        }
+                    }
+                    Item { Layout.fillWidth: true }
+                    Text {
+                        text: BluetoothService.isPowered ? "ONLINE" : "OFFLINE"
+                        color: BluetoothService.isPowered ? Theme.accent : Theme.subtextDim
+                        font.pixelSize: Math.round(10 * Theme.uiScale)
+                        font.bold: true
+                        font.letterSpacing: 1.0
+                        font.family: Theme.fontFamily
+                    }
+                }
+            }
+        }
+
+        // Bottom breathing room
+        Item { Layout.fillWidth: true; Layout.preferredHeight: Math.round(4 * Theme.uiScale) }
     }
 }
