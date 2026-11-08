@@ -1,8 +1,10 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import Quickshell
 import Quickshell.Services.Pipewire
 import "../../services"
+import "../../components"
 
 ColumnLayout {
     id: selectorRoot
@@ -13,7 +15,7 @@ ColumnLayout {
 
     signal backClicked()
 
-    spacing: 14
+    spacing: Math.round(14 * Theme.uiScale)
 
     // Helper filter to accurately identify hardware sinks vs sources
     function matchDevice(n) {
@@ -35,9 +37,9 @@ ColumnLayout {
         spacing: 10
 
         Rectangle {
-            implicitWidth: 84
-            implicitHeight: 32
-            radius: 8
+            implicitWidth: Math.round(84 * Theme.uiScale)
+            implicitHeight: Math.round(32 * Theme.uiScale)
+            radius: Math.round(8 * Theme.uiScale)
             color: backMouse.containsMouse ? Theme.surfaceHover : Theme.surface
             border.color: backMouse.containsMouse ? Theme.accent : Theme.border
             border.width: 1
@@ -99,88 +101,104 @@ ColumnLayout {
     }
 
     // =========================================================================
-    // Device Cards List
+    // Scrollable Device Cards List (Fixed Height, Internal Flickable)
     // =========================================================================
-    ColumnLayout {
+    Flickable {
+        id: flickable
         Layout.fillWidth: true
-        spacing: 8
+        Layout.fillHeight: true
+        Layout.rightMargin: -12
+        contentWidth: width - 12
+        contentHeight: deviceListLayout.implicitHeight
+        clip: true
+        boundsBehavior: Flickable.StopAtBounds
 
-        Repeater {
-            model: Pipewire.nodes.values.filter(n => selectorRoot.matchDevice(n))
+        ScrollBar.vertical: ModernScrollBar {
+            targetFlickable: flickable
+        }
 
-            delegate: Rectangle {
-                required property var modelData
-                Layout.fillWidth: true
-                implicitHeight: 50
-                radius: 10
+        ColumnLayout {
+            id: deviceListLayout
+            width: flickable.contentWidth
+            spacing: 8
 
-                readonly property bool isSelected: modelData.id === selectorRoot.currentId
-                color: isSelected ? Theme.surfaceHover : (cardMouse.containsMouse ? Theme.surface : "transparent")
-                border.color: isSelected ? Theme.accent : (cardMouse.containsMouse ? Theme.border : "transparent")
-                border.width: 1
+            Repeater {
+                model: Pipewire.nodes.values.filter(n => selectorRoot.matchDevice(n))
 
-                Behavior on color { ColorAnimation { duration: 120 } }
-                Behavior on border.color { ColorAnimation { duration: 120 } }
+                delegate: Rectangle {
+                    required property var modelData
+                    Layout.fillWidth: true
+                    implicitHeight: 50
+                    radius: 10
 
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: 16
-                    anchors.rightMargin: 16
-                    spacing: 14
+                    readonly property bool isSelected: modelData.id === selectorRoot.currentId
+                    color: isSelected ? Theme.surfaceHover : (cardMouse.containsMouse ? Theme.surface : "transparent")
+                    border.color: isSelected ? Theme.accent : (cardMouse.containsMouse ? Theme.border : "transparent")
+                    border.width: 1
 
-                    // Radio indicator
-                    Text {
-                        text: isSelected ? "󰄲" : "󰄱"
-                        color: isSelected ? Theme.accent : Theme.subtextDim
-                        font.pixelSize: 18
-                        font.family: Theme.fontFamily
-                    }
+                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on border.color { ColorAnimation { duration: 120 } }
 
-                    // Device name (Clean 15px Bold)
-                    Text {
-                        text: {
-                            var p = modelData.properties || {};
-                            return modelData.description || p["node.nick"] || modelData.name || ("Device #" + modelData.id);
-                        }
-                        color: isSelected ? Theme.fg : Theme.fgSoft
-                        font.pixelSize: 15
-                        font.bold: isSelected
-                        font.family: Theme.fontFamily
-                        elide: Text.ElideRight
-                        Layout.fillWidth: true
-                    }
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 16
+                        anchors.rightMargin: 16
+                        spacing: 14
 
-                    // Active badge
-                    Rectangle {
-                        visible: isSelected
-                        implicitWidth: activeText.implicitWidth + 16
-                        implicitHeight: 24
-                        radius: 12
-                        color: Qt.tint(Theme.surface, Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25))
-                        border.color: Theme.accent
-                        border.width: 1
-
+                        // Radio indicator
                         Text {
-                            id: activeText
-                            anchors.centerIn: parent
-                            text: "ACTIVE"
-                            color: Theme.accent
-                            font.pixelSize: 11
-                            font.bold: true
-                            font.letterSpacing: 1.0
+                            text: isSelected ? "󰄲" : "󰄱"
+                            color: isSelected ? Theme.accent : Theme.subtextDim
+                            font.pixelSize: 18
                             font.family: Theme.fontFamily
                         }
-                    }
-                }
 
-                MouseArea {
-                    id: cardMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        Quickshell.execDetached(["wpctl", "set-default", modelData.id.toString()]);
-                        selectorRoot.backClicked();
+                        // Device name (Clean 15px Bold)
+                        Text {
+                            text: {
+                                var p = modelData.properties || {};
+                                return modelData.description || p["node.nick"] || modelData.name || ("Device #" + modelData.id);
+                            }
+                            color: isSelected ? Theme.fg : Theme.fgSoft
+                            font.pixelSize: 15
+                            font.bold: isSelected
+                            font.family: Theme.fontFamily
+                            elide: Text.ElideRight
+                            Layout.fillWidth: true
+                        }
+
+                        // Active badge
+                        Rectangle {
+                            visible: isSelected
+                            implicitWidth: activeText.implicitWidth + 16
+                            implicitHeight: 24
+                            radius: 12
+                            color: Qt.tint(Theme.surface, Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25))
+                            border.color: Theme.accent
+                            border.width: 1
+
+                            Text {
+                                id: activeText
+                                anchors.centerIn: parent
+                                text: "ACTIVE"
+                                color: Theme.accent
+                                font.pixelSize: 11
+                                font.bold: true
+                                font.letterSpacing: 1.0
+                                font.family: Theme.fontFamily
+                            }
+                        }
+                    }
+
+                    MouseArea {
+                        id: cardMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            Quickshell.execDetached(["wpctl", "set-default", modelData.id.toString()]);
+                            selectorRoot.backClicked();
+                        }
                     }
                 }
             }

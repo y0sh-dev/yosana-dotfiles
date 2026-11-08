@@ -11,13 +11,15 @@ ColumnLayout {
     property var defaultSink: null
     property var defaultSource: null
     property bool overdriveUnlocked: false
+    property bool isPanelOpen: true
 
     signal selectOutputRequested()
     signal selectInputRequested()
     signal appStreamsRequested()
+    signal effectsRequested()
     signal toggleOverdrive()
 
-    spacing: 14
+    spacing: Math.round(16 * Theme.uiScale)
 
     // EasyEffects DSP Active Presets & Process Reader
     property string activeOutputPreset: "My-EasyEQ_2+Black"
@@ -102,7 +104,7 @@ ColumnLayout {
         node: (masterViewRoot.activeInputPreset === "Voice_Clean" && masterViewRoot.eeSourceNode) 
               ? masterViewRoot.eeSourceNode 
               : masterViewRoot.defaultSource
-        enabled: masterViewRoot.visible && (node != null)
+        enabled: masterViewRoot.visible && masterViewRoot.isPanelOpen && (node != null)
     }
 
     // Strict filter for audio playback streams (filters out microphone capture streams)
@@ -240,7 +242,7 @@ ColumnLayout {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    Quickshell.execDetached(["easyeffects"]);
+                    masterViewRoot.effectsRequested();
                 }
             }
         }
@@ -251,8 +253,8 @@ ColumnLayout {
     // =========================================================================
     Rectangle {
         Layout.fillWidth: true
-        implicitHeight: outCardLayout.implicitHeight + 28
-        radius: 12
+        implicitHeight: outCardLayout.implicitHeight + Math.round(36 * Theme.uiScale)
+        radius: Math.round(16 * Theme.uiScale)
         color: Theme.surface
         border.color: masterViewRoot.overdriveUnlocked ? Theme.warning : Theme.border
         border.width: 1
@@ -262,8 +264,8 @@ ColumnLayout {
         ColumnLayout {
             id: outCardLayout
             anchors.fill: parent
-            anchors.margins: 14
-            spacing: 12
+            anchors.margins: Math.round(18 * Theme.uiScale)
+            spacing: Math.round(14 * Theme.uiScale)
 
             // Card Header: Category + Device Pill Button
             RowLayout {
@@ -323,7 +325,7 @@ ColumnLayout {
                             font.bold: true
                             font.family: Theme.fontFamily
                             elide: Text.ElideRight
-                            Layout.maximumWidth: 240
+                            Layout.maximumWidth: Math.round(270 * Theme.uiScale)
                         }
 
                         Text {
@@ -489,8 +491,8 @@ ColumnLayout {
     // =========================================================================
     Rectangle {
         Layout.fillWidth: true
-        implicitHeight: inCardLayout.implicitHeight + 28
-        radius: 12
+        implicitHeight: inCardLayout.implicitHeight + Math.round(36 * Theme.uiScale)
+        radius: Math.round(16 * Theme.uiScale)
         color: Theme.surface
         border.color: Theme.border
         border.width: 1
@@ -498,8 +500,8 @@ ColumnLayout {
         ColumnLayout {
             id: inCardLayout
             anchors.fill: parent
-            anchors.margins: 14
-            spacing: 12
+            anchors.margins: Math.round(18 * Theme.uiScale)
+            spacing: Math.round(14 * Theme.uiScale)
 
             // Card Header: Category + Device Pill Button
             RowLayout {
@@ -560,7 +562,7 @@ ColumnLayout {
                             font.bold: true
                             font.family: Theme.fontFamily
                             elide: Text.ElideRight
-                            Layout.maximumWidth: 240
+                            Layout.maximumWidth: Math.round(270 * Theme.uiScale)
                         }
 
                         Text {
