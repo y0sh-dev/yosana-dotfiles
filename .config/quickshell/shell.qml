@@ -1,8 +1,6 @@
 // Root shell configuration
 import Quickshell
-// Root shell configuration
 import Quickshell.Hyprland
-// Root shell configuration
 import Quickshell.Wayland
 import "./services"
 import "./layers"
@@ -26,24 +24,27 @@ ShellRoot {
             calendarPopup.isOpen = !calendarPopup.isOpen
             if (calendarPopup.isOpen) {
                 powerMenu.isOpen = false
-                audioPanel.isOpen = false
             }
         }
         onVolumeClicked: {
             audioPanel.isOpen = !audioPanel.isOpen
             if (audioPanel.isOpen) {
-                calendarPopup.isOpen = false
                 powerMenu.isOpen = false
             }
         }
         onNetworkClicked: {
-            console.log("Network clicked: control panel trigger")
+            networkPanel.isOpen = !networkPanel.isOpen
+            if (networkPanel.isOpen) {
+                powerMenu.isOpen = false
+            }
         }
         onPowerClicked: {
             powerMenu.isOpen = !powerMenu.isOpen
             if (powerMenu.isOpen) {
+                // PowerMenu closes all telemetry panels
                 calendarPopup.isOpen = false
                 audioPanel.isOpen = false
+                networkPanel.isOpen = false
             }
         }
     }
@@ -54,6 +55,10 @@ ShellRoot {
 
     AudioPanel {
         id: audioPanel
+    }
+
+    NetworkPanel {
+        id: networkPanel
     }
 
     PowerMenu {
