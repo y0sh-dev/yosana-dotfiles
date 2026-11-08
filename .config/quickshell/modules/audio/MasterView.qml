@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import Quickshell.Services.Pipewire
 import "../../services"
 
@@ -10,13 +11,83 @@ ColumnLayout {
     property var defaultSink: null
     property var defaultSource: null
     property bool overdriveUnlocked: false
+    property bool isPanelOpen: true
 
     signal selectOutputRequested()
     signal selectInputRequested()
     signal appStreamsRequested()
+    signal effectsRequested()
     signal toggleOverdrive()
 
-    spacing: 14
+    spacing: Math.round(16 * Theme.uiScale)
+
+    // EasyEffects DSP Active Presets & Process Reader
+    property string activeOutputPreset: "My-EasyEQ_2+Black"
+    property string activeInputPreset: "Voice_Clean"
+
+    // Search for EasyEffects virtual source node for noise-cancelled peak monitoring
+    readonly property var eeSourceNode: {
+        var list = Pipewire.nodes.values;
+        for (var i = 0; i < list.length; i++) {
+            var n = list[i];
+            if (n && (n.name === "easyeffects_source" || (n.properties && n.properties["node.name"] === "easyeffects_source"))) {
+                return n;
+            }
+        }
+        return null;
+    }
+
+    function toggleOutputPreset() {
+        if (activeOutputPreset === "My-EasyEQ_2+Black") {
+            activeOutputPreset = "Flat";
+            Quickshell.execDetached(["easyeffects", "-l", "Flat"]);
+        } else {
+            activeOutputPreset = "My-EasyEQ_2+Black";
+            Quickshell.execDetached(["easyeffects", "-l", "My-EasyEQ_2+Black"]);
+        }
+    }
+
+    function toggleInputPreset() {
+        if (activeInputPreset === "Voice_Clean") {
+            activeInputPreset = "Voice_Raw";
+            Quickshell.execDetached(["easyeffects", "-l", "Voice_Raw"]);
+        } else {
+            activeInputPreset = "Voice_Clean";
+            Quickshell.execDetached(["easyeffects", "-l", "Voice_Clean"]);
+        }
+    }
+
+    Process {
+        id: dspStatusProc
+        command: ["sh", "-c", "QT_QPA_PLATFORM=offscreen easyeffects -s 2>/dev/null"]
+        stdout: StdioCollector {
+            onDataChanged: {
+                var lines = (data || "").toString().split("\n");
+                for (var i = 0; i < lines.length; i++) {
+                    var l = lines[i].trim();
+                    if (l.startsWith("input:")) {
+                        var inVal = l.replace("input:", "").trim();
+                        if (inVal.length > 0) masterViewRoot.activeInputPreset = inVal;
+                    } else if (l.startsWith("output:")) {
+                        var outVal = l.replace("output:", "").trim();
+                        if (outVal.length > 0) masterViewRoot.activeOutputPreset = outVal;
+                    }
+                }
+            }
+        }
+    }
+
+    onVisibleChanged: {
+        if (visible && !dspStatusProc.running) {
+            dspStatusProc.running = true;
+        }
+    }
+
+    Component.onCompleted: {
+        if (!dspStatusProc.running) {
+            dspStatusProc.running = true;
+        }
+    }
 
     readonly property real outVolume: defaultSink && defaultSink.audio ? defaultSink.audio.volume : 0.0
     readonly property bool outMuted: defaultSink && defaultSink.audio ? defaultSink.audio.muted : false
@@ -27,10 +98,13 @@ ColumnLayout {
     readonly property string inName: defaultSource ? (defaultSource.description || defaultSource.name || "Default Input") : "No Input Device"
 
     // Real-time microphone peak level monitor (active only when panel is visible)
+    // When Noise Clean is active and eeSourceNode is present, monitors clean audio post-filter
     PwNodePeakMonitor {
         id: micPeakMonitor
-        node: masterViewRoot.defaultSource
-        enabled: masterViewRoot.visible && (masterViewRoot.defaultSource != null)
+        node: (masterViewRoot.activeInputPreset === "Voice_Clean" && masterViewRoot.eeSourceNode) 
+              ? masterViewRoot.eeSourceNode 
+              : masterViewRoot.defaultSource
+        enabled: masterViewRoot.visible && masterViewRoot.isPanelOpen && (node != null)
     }
 
     // Strict filter for audio playback streams (filters out microphone capture streams)
@@ -168,7 +242,7 @@ ColumnLayout {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    Quickshell.execDetached(["easyeffects"]);
+                    masterViewRoot.effectsRequested();
                 }
             }
         }
@@ -179,8 +253,8 @@ ColumnLayout {
     // =========================================================================
     Rectangle {
         Layout.fillWidth: true
-        implicitHeight: outCardLayout.implicitHeight + 28
-        radius: 12
+        implicitHeight: outCardLayout.implicitHeight + Math.round(36 * Theme.uiScale)
+        radius: Math.round(16 * Theme.uiScale)
         color: Theme.surface
         border.color: masterViewRoot.overdriveUnlocked ? Theme.warning : Theme.border
         border.width: 1
@@ -190,8 +264,8 @@ ColumnLayout {
         ColumnLayout {
             id: outCardLayout
             anchors.fill: parent
-            anchors.margins: 14
-            spacing: 12
+            anchors.margins: Math.round(18 * Theme.uiScale)
+            spacing: Math.round(14 * Theme.uiScale)
 
             // Card Header: Category + Device Pill Button
             RowLayout {
@@ -251,7 +325,7 @@ ColumnLayout {
                             font.bold: true
                             font.family: Theme.fontFamily
                             elide: Text.ElideRight
-                            Layout.maximumWidth: 240
+                            Layout.maximumWidth: Math.round(270 * Theme.uiScale)
                         }
 
                         Text {
@@ -338,6 +412,61 @@ ColumnLayout {
                     font.letterSpacing: 0.8
                     font.family: Theme.fontFamily
                 }
+
+                // Inline Output DSP Preset Toggle Pill
+                Rectangle {
+                    implicitHeight: 28
+                    implicitWidth: eqPillLayout.implicitWidth + 18
+                    radius: 14
+                    readonly property bool isEqActive: masterViewRoot.activeOutputPreset === "My-EasyEQ_2+Black"
+                    color: eqPillMouse.containsMouse 
+                           ? (isEqActive ? Qt.tint(Theme.surfaceHover, Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)) : Theme.surfaceHover)
+                           : (isEqActive ? Qt.tint(Theme.surface, Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.15)) : Qt.rgba(0, 0, 0, 0.35))
+                    border.color: isEqActive ? Theme.accent : (eqPillMouse.containsMouse ? Theme.border : "transparent")
+                    border.width: 1
+
+                    scale: eqPillMouse.pressed ? 0.95 : 1.0
+                    Behavior on scale { NumberAnimation { duration: 80 } }
+                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on border.color { ColorAnimation { duration: 120 } }
+
+                    RowLayout {
+                        id: eqPillLayout
+                        anchors.centerIn: parent
+                        spacing: 5
+
+                        Text {
+                            text: "󰓃"
+                            color: parent.parent.isEqActive ? Theme.accent : Theme.subtextDim
+                            font.pixelSize: 13
+                            font.family: Theme.fontFamily
+                        }
+
+                        Text {
+                            text: parent.parent.isEqActive ? "My-EasyEQ" : "Flat (Raw)"
+                            color: parent.parent.isEqActive ? Theme.fg : Theme.fgSoft
+                            font.pixelSize: 11
+                            font.bold: true
+                            font.family: Theme.fontFamily
+                        }
+                    }
+
+                    MouseArea {
+                        id: eqPillMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+
+                        onClicked: (mouse) => {
+                            if (mouse.button === Qt.RightButton) {
+                                Quickshell.execDetached(["easyeffects"]);
+                            } else {
+                                masterViewRoot.toggleOutputPreset();
+                            }
+                        }
+                    }
+                }
             }
 
             // Modern 14px Capsule Slider
@@ -362,8 +491,8 @@ ColumnLayout {
     // =========================================================================
     Rectangle {
         Layout.fillWidth: true
-        implicitHeight: inCardLayout.implicitHeight + 28
-        radius: 12
+        implicitHeight: inCardLayout.implicitHeight + Math.round(36 * Theme.uiScale)
+        radius: Math.round(16 * Theme.uiScale)
         color: Theme.surface
         border.color: Theme.border
         border.width: 1
@@ -371,8 +500,8 @@ ColumnLayout {
         ColumnLayout {
             id: inCardLayout
             anchors.fill: parent
-            anchors.margins: 14
-            spacing: 12
+            anchors.margins: Math.round(18 * Theme.uiScale)
+            spacing: Math.round(14 * Theme.uiScale)
 
             // Card Header: Category + Device Pill Button
             RowLayout {
@@ -433,7 +562,7 @@ ColumnLayout {
                             font.bold: true
                             font.family: Theme.fontFamily
                             elide: Text.ElideRight
-                            Layout.maximumWidth: 240
+                            Layout.maximumWidth: Math.round(270 * Theme.uiScale)
                         }
 
                         Text {
@@ -517,6 +646,61 @@ ColumnLayout {
                 }
 
                 Item { Layout.fillWidth: true }
+
+                // Inline Mic Noise Cancellation Toggle Pill
+                Rectangle {
+                    implicitHeight: 28
+                    implicitWidth: ncPillLayout.implicitWidth + 18
+                    radius: 14
+                    readonly property bool isCleanActive: masterViewRoot.activeInputPreset === "Voice_Clean"
+                    color: ncPillMouse.containsMouse 
+                           ? (isCleanActive ? Qt.tint(Theme.surfaceHover, Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)) : Theme.surfaceHover)
+                           : (isCleanActive ? Qt.tint(Theme.surface, Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.15)) : Qt.rgba(0, 0, 0, 0.35))
+                    border.color: isCleanActive ? Theme.accent : (ncPillMouse.containsMouse ? Theme.border : "transparent")
+                    border.width: 1
+
+                    scale: ncPillMouse.pressed ? 0.95 : 1.0
+                    Behavior on scale { NumberAnimation { duration: 80 } }
+                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on border.color { ColorAnimation { duration: 120 } }
+
+                    RowLayout {
+                        id: ncPillLayout
+                        anchors.centerIn: parent
+                        spacing: 5
+
+                        Text {
+                            text: parent.parent.isCleanActive ? "󰍬" : "󰍭"
+                            color: parent.parent.isCleanActive ? Theme.accent : Theme.subtextDim
+                            font.pixelSize: 13
+                            font.family: Theme.fontFamily
+                        }
+
+                        Text {
+                            text: parent.parent.isCleanActive ? "Noise Clean" : "Raw Mic"
+                            color: parent.parent.isCleanActive ? Theme.fg : Theme.fgSoft
+                            font.pixelSize: 11
+                            font.bold: true
+                            font.family: Theme.fontFamily
+                        }
+                    }
+
+                    MouseArea {
+                        id: ncPillMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+
+                        onClicked: (mouse) => {
+                            if (mouse.button === Qt.RightButton) {
+                                Quickshell.execDetached(["easyeffects"]);
+                            } else {
+                                masterViewRoot.toggleInputPreset();
+                            }
+                        }
+                    }
+                }
             }
 
             // Modern 14px Capsule Slider with Real-time Peak Level Meter

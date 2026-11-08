@@ -40,17 +40,18 @@ Item {
         viewMonth = currentTime.getMonth();
     }
 
-    // Solid Framed Enclosure Card for Calendar (Frameless pure matte card with gentle translucency)
+    // Unified Surface Container Card for Calendar (Noise-free, flat Material You / Caelestia aesthetic)
     Rectangle {
         anchors.fill: parent
         color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.45)
-        border.width: 0
-        radius: Math.round(14 * Theme.uiScale)
+        border.color: Qt.rgba(255, 255, 255, 0.06)
+        border.width: 1
+        radius: Math.round(18 * Theme.uiScale)
 
-        // Mouse wheel navigation for smooth month switching
+        // Mouse wheel navigation on the calendar card for smooth month switching
         MouseArea {
             anchors.fill: parent
-            acceptedButtons: Qt.NoButton // Let clicks pass through to child buttons
+            acceptedButtons: Qt.NoButton // Pass clicks through to child buttons
             onWheel: function(wheel) {
                 if (wheel.angleDelta.y > 0) {
                     monthViewRoot.prevMonth();
@@ -62,223 +63,215 @@ Item {
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: Math.round(14 * Theme.uiScale)
-            spacing: Math.round(10 * Theme.uiScale)
+            anchors.margins: Math.round(18 * Theme.uiScale)
+            spacing: 0 // Explicit spacing between sections for deliberate whitespace control
 
-            // 1. Navigation Header: Bi-split Capsule Navigation (◀ Month ▶ / ◀ Year ▶ / Reset)
+            // =================================================================
+            // 1. Navigation Header: Borderless Ghost Buttons
+            // =================================================================
             RowLayout {
                 Layout.fillWidth: true
-                spacing: Math.round(8 * Theme.uiScale)
+                spacing: Math.round(10 * Theme.uiScale)
 
-                // ─── Bi-split Month Capsule ───
-                Rectangle {
-                    id: monthCapsule
-                    implicitWidth: Math.round(186 * Theme.uiScale)
-                    implicitHeight: Math.round(36 * Theme.uiScale)
-                    radius: Math.round(18 * Theme.uiScale)
-                    color: "transparent"
-                    border.color: Qt.rgba(1, 1, 1, 0.08)
-                    border.width: 1
-                    clip: true
+                // ─── Month Ghost Navigation ───
+                Row {
+                    spacing: Math.round(4 * Theme.uiScale)
+                    Layout.alignment: Qt.AlignVCenter
 
-                    // Left-half rounded highlight (Previous Month)
+                    // Prev Month Ghost Button
                     Rectangle {
-                        anchors.left: parent.left
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        anchors.right: monthDivider.left
-                        anchors.margins: 2
-                        radius: Math.round(16 * Theme.uiScale)
-                        color: prevMonthArea.containsMouse ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18) : "transparent"
+                        width: Math.round(28 * Theme.uiScale)
+                        height: Math.round(28 * Theme.uiScale)
+                        radius: width / 2
+                        color: prevMonthArea.containsMouse ? Qt.rgba(255, 255, 255, 0.08) : "transparent"
+                        border.width: 0
+
                         Behavior on color { ColorAnimation { duration: 120 } }
-                    }
-
-                    // Center micro-gap
-                    Item {
-                        id: monthDivider
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        width: 2
-                        height: parent.height
-                    }
-
-                    // Right-half rounded highlight (Next Month)
-                    Rectangle {
-                        anchors.left: monthDivider.right
-                        anchors.right: parent.right
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        anchors.margins: 2
-                        radius: Math.round(16 * Theme.uiScale)
-                        color: nextMonthArea.containsMouse ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18) : "transparent"
-                        Behavior on color { ColorAnimation { duration: 120 } }
-                    }
-
-                    // Content (Centered over the capsule)
-                    Row {
-                        anchors.centerIn: parent
-                        spacing: Math.round(10 * Theme.uiScale)
+                        scale: prevMonthArea.pressed ? 0.90 : 1.0
+                        Behavior on scale { NumberAnimation { duration: 100 } }
 
                         Text {
-                            text: "◀"
+                            anchors.centerIn: parent
+                            text: "‹"
                             color: prevMonthArea.containsMouse ? Theme.accent : Theme.subtextDim
-                            font.pixelSize: Math.round(12 * Theme.uiScale)
-                            anchors.verticalCenter: parent.verticalCenter
-                            Behavior on color { ColorAnimation { duration: 120 } }
-                        }
-
-                        Text {
-                            readonly property var monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-                            text: monthNames[monthViewRoot.viewMonth]
-                            color: Theme.fgSoft
-                            font.pixelSize: Math.round(14 * Theme.uiScale)
+                            font.pixelSize: Math.round(17 * Theme.uiScale)
                             font.bold: true
                             font.family: Theme.fontFamily
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-
-                        Text {
-                            text: "▶"
-                            color: nextMonthArea.containsMouse ? Theme.accent : Theme.subtextDim
-                            font.pixelSize: Math.round(12 * Theme.uiScale)
-                            anchors.verticalCenter: parent.verticalCenter
                             Behavior on color { ColorAnimation { duration: 120 } }
                         }
+
+                        MouseArea {
+                            id: prevMonthArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: monthViewRoot.prevMonth()
+                        }
                     }
 
-                    // Left-half hit area (◀ to center)
-                    MouseArea {
-                        id: prevMonthArea
-                        anchors.left: parent.left
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        anchors.right: monthDivider.left
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: monthViewRoot.prevMonth()
+                    // Month Name Text (Scrollable with mouse wheel)
+                    Item {
+                        width: Math.round(104 * Theme.uiScale)
+                        height: Math.round(28 * Theme.uiScale)
+
+                        Text {
+                            anchors.centerIn: parent
+                            readonly property var monthNames: [
+                                "January", "February", "March", "April", "May", "June",
+                                "July", "August", "September", "October", "November", "December"
+                            ]
+                            text: monthNames[monthViewRoot.viewMonth]
+                            color: Theme.fgSoft
+                            font.pixelSize: Math.round(15 * Theme.uiScale)
+                            font.bold: true
+                            font.family: Theme.fontFamily
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onWheel: function(wheel) {
+                                if (wheel.angleDelta.y > 0) monthViewRoot.prevMonth();
+                                else if (wheel.angleDelta.y < 0) monthViewRoot.nextMonth();
+                            }
+                        }
                     }
 
-                    // Right-half hit area (center to ▶)
-                    MouseArea {
-                        id: nextMonthArea
-                        anchors.left: monthDivider.right
-                        anchors.right: parent.right
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: monthViewRoot.nextMonth()
+                    // Next Month Ghost Button
+                    Rectangle {
+                        width: Math.round(28 * Theme.uiScale)
+                        height: Math.round(28 * Theme.uiScale)
+                        radius: width / 2
+                        color: nextMonthArea.containsMouse ? Qt.rgba(255, 255, 255, 0.08) : "transparent"
+                        border.width: 0
+
+                        Behavior on color { ColorAnimation { duration: 120 } }
+                        scale: nextMonthArea.pressed ? 0.90 : 1.0
+                        Behavior on scale { NumberAnimation { duration: 100 } }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "›"
+                            color: nextMonthArea.containsMouse ? Theme.accent : Theme.subtextDim
+                            font.pixelSize: Math.round(17 * Theme.uiScale)
+                            font.bold: true
+                            font.family: Theme.fontFamily
+                            Behavior on color { ColorAnimation { duration: 120 } }
+                        }
+
+                        MouseArea {
+                            id: nextMonthArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: monthViewRoot.nextMonth()
+                        }
                     }
                 }
 
-                // ─── Bi-split Year Capsule ───
-                Rectangle {
-                    id: yearCapsule
-                    implicitWidth: Math.round(120 * Theme.uiScale)
-                    implicitHeight: Math.round(36 * Theme.uiScale)
-                    radius: Math.round(18 * Theme.uiScale)
-                    color: "transparent"
-                    border.color: Qt.rgba(1, 1, 1, 0.08)
-                    border.width: 1
-                    clip: true
+                // ─── Year Ghost Navigation ───
+                Row {
+                    spacing: Math.round(4 * Theme.uiScale)
+                    Layout.alignment: Qt.AlignVCenter
 
-                    // Left-half rounded highlight (Previous Year)
+                    // Prev Year Ghost Button
                     Rectangle {
-                        anchors.left: parent.left
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        anchors.right: yearDivider.left
-                        anchors.margins: 2
-                        radius: Math.round(16 * Theme.uiScale)
-                        color: prevYearArea.containsMouse ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18) : "transparent"
+                        width: Math.round(28 * Theme.uiScale)
+                        height: Math.round(28 * Theme.uiScale)
+                        radius: width / 2
+                        color: prevYearArea.containsMouse ? Qt.rgba(255, 255, 255, 0.08) : "transparent"
+                        border.width: 0
+
                         Behavior on color { ColorAnimation { duration: 120 } }
-                    }
-
-                    // Center micro-gap
-                    Item {
-                        id: yearDivider
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        width: 2
-                        height: parent.height
-                    }
-
-                    // Right-half rounded highlight (Next Year)
-                    Rectangle {
-                        anchors.left: yearDivider.right
-                        anchors.right: parent.right
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        anchors.margins: 2
-                        radius: Math.round(16 * Theme.uiScale)
-                        color: nextYearArea.containsMouse ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18) : "transparent"
-                        Behavior on color { ColorAnimation { duration: 120 } }
-                    }
-
-                    // Content (Centered over the capsule)
-                    Row {
-                        anchors.centerIn: parent
-                        spacing: Math.round(8 * Theme.uiScale)
+                        scale: prevYearArea.pressed ? 0.90 : 1.0
+                        Behavior on scale { NumberAnimation { duration: 100 } }
 
                         Text {
-                            text: "◀"
+                            anchors.centerIn: parent
+                            text: "‹"
                             color: prevYearArea.containsMouse ? Theme.accent : Theme.subtextDim
-                            font.pixelSize: Math.round(11 * Theme.uiScale)
-                            anchors.verticalCenter: parent.verticalCenter
-                            Behavior on color { ColorAnimation { duration: 120 } }
-                        }
-
-                        Text {
-                            text: monthViewRoot.viewYear.toString()
-                            color: Theme.fgSoft
-                            font.pixelSize: Math.round(14 * Theme.uiScale)
+                            font.pixelSize: Math.round(16 * Theme.uiScale)
                             font.bold: true
                             font.family: Theme.fontFamily
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-
-                        Text {
-                            text: "▶"
-                            color: nextYearArea.containsMouse ? Theme.accent : Theme.subtextDim
-                            font.pixelSize: Math.round(11 * Theme.uiScale)
-                            anchors.verticalCenter: parent.verticalCenter
                             Behavior on color { ColorAnimation { duration: 120 } }
                         }
+
+                        MouseArea {
+                            id: prevYearArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: monthViewRoot.prevYear()
+                        }
                     }
 
-                    // Left-half hit area (◀ to center)
-                    MouseArea {
-                        id: prevYearArea
-                        anchors.left: parent.left
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        anchors.right: yearDivider.left
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: monthViewRoot.prevYear()
+                    // Year Text (Scrollable with mouse wheel)
+                    Item {
+                        width: Math.round(50 * Theme.uiScale)
+                        height: Math.round(28 * Theme.uiScale)
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: monthViewRoot.viewYear.toString()
+                            color: Theme.fgSoft
+                            font.pixelSize: Math.round(15 * Theme.uiScale)
+                            font.bold: true
+                            font.family: Theme.fontFamily
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onWheel: function(wheel) {
+                                if (wheel.angleDelta.y > 0) monthViewRoot.prevYear();
+                                else if (wheel.angleDelta.y < 0) monthViewRoot.nextMonth();
+                            }
+                        }
                     }
 
-                    // Right-half hit area (center to ▶)
-                    MouseArea {
-                        id: nextYearArea
-                        anchors.left: yearDivider.right
-                        anchors.right: parent.right
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: monthViewRoot.nextYear()
+                    // Next Year Ghost Button
+                    Rectangle {
+                        width: Math.round(28 * Theme.uiScale)
+                        height: Math.round(28 * Theme.uiScale)
+                        radius: width / 2
+                        color: nextYearArea.containsMouse ? Qt.rgba(255, 255, 255, 0.08) : "transparent"
+                        border.width: 0
+
+                        Behavior on color { ColorAnimation { duration: 120 } }
+                        scale: nextYearArea.pressed ? 0.90 : 1.0
+                        Behavior on scale { NumberAnimation { duration: 100 } }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "›"
+                            color: nextYearArea.containsMouse ? Theme.accent : Theme.subtextDim
+                            font.pixelSize: Math.round(16 * Theme.uiScale)
+                            font.bold: true
+                            font.family: Theme.fontFamily
+                            Behavior on color { ColorAnimation { duration: 120 } }
+                        }
+
+                        MouseArea {
+                            id: nextYearArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: monthViewRoot.nextYear()
+                        }
                     }
                 }
 
                 Item { Layout.fillWidth: true }
 
-                // ─── Reset to Today Button ───
+                // ─── Reset to Today Ghost Button ───
                 Rectangle {
-                    implicitWidth: Math.round(36 * Theme.uiScale)
-                    implicitHeight: Math.round(36 * Theme.uiScale)
-                    radius: Math.round(18 * Theme.uiScale)
-                    color: todayMouse.containsMouse ? Theme.surfaceHover : "transparent"
-                    border.color: todayMouse.containsMouse ? Theme.accent : Qt.rgba(1, 1, 1, 0.08)
-                    border.width: 1
+                    width: Math.round(30 * Theme.uiScale)
+                    height: Math.round(30 * Theme.uiScale)
+                    radius: width / 2
+                    color: todayMouse.containsMouse ? Qt.rgba(255, 255, 255, 0.08) : "transparent"
+                    border.width: 0
+
+                    scale: todayMouse.pressed ? 0.90 : (todayMouse.containsMouse ? 1.05 : 1.0)
+                    Behavior on scale { NumberAnimation { duration: 100 } }
+                    Behavior on color { ColorAnimation { duration: 120 } }
 
                     Text {
                         anchors.centerIn: parent
@@ -298,10 +291,18 @@ Item {
                 }
             }
 
-            // 2. Weekday Header (Sun=Red, Mon-Fri=SubtextDim, Sat=Blue)
+            // Gap between Header and Weekday row
+            Item {
+                Layout.fillWidth: true
+                Layout.preferredHeight: Math.round(14 * Theme.uiScale)
+            }
+
+            // =================================================================
+            // 2. Weekday Header (Sunday=Red, Mon-Fri=Subtext, Saturday=Blue)
+            // =================================================================
             RowLayout {
                 Layout.fillWidth: true
-                spacing: Math.round(4 * Theme.uiScale)
+                spacing: 0
 
                 Repeater {
                     model: [
@@ -315,32 +316,41 @@ Item {
                     ]
                     delegate: Item {
                         Layout.fillWidth: true
-                        height: Math.round(26 * Theme.uiScale)
+                        height: Math.round(24 * Theme.uiScale)
                         Text {
                             anchors.centerIn: parent
                             text: modelData.name
                             color: modelData.color
-                            font.pixelSize: Math.round(12 * Theme.uiScale)
+                            font.pixelSize: Math.round(13 * Theme.uiScale)
                             font.bold: true
                             font.family: Theme.fontFamily
+                            opacity: 0.90
                         }
                     }
                 }
             }
 
-            // 3. Subtle Matte Divider Line between Header & Grid
-            Rectangle {
+            // =================================================================
+            // 3. Deliberate Space between Weekdays (Sun ~ Sat) and Dates
+            // This is the dedicated breathing room opening up the space between
+            // the weekday header and the compact date numbers, shifting the dates
+            // down to utilize the empty space at the bottom.
+            // =================================================================
+            Item {
                 Layout.fillWidth: true
-                height: 1
-                color: Theme.border
-                opacity: 0.18
+                Layout.preferredHeight: Math.round(56 * Theme.uiScale)
             }
 
-            // 4. Days Grid (42 Cells: 7 cols x 6 rows) - Matte Tile Grid Architecture
+            // =================================================================
+            // 4. Compact Date Grid: Original Beloved Compact Geometry
+            // Flat Clean Text (Noise-Free, NO Rectangular Box Borders)
+            // Number spacing is NOT stretched: 38px cell height, 4px rowSpacing
+            // =================================================================
             GridLayout {
+                id: daysGrid
                 columns: 7
                 rowSpacing: Math.round(4 * Theme.uiScale)
-                columnSpacing: Math.round(4 * Theme.uiScale)
+                columnSpacing: 0
                 Layout.fillWidth: true
 
                 Repeater {
@@ -366,36 +376,31 @@ Item {
                             monthViewRoot.viewMonth === monthViewRoot.currentTime.getMonth() &&
                             displayDay === monthViewRoot.currentTime.getDate()
 
-                        // Matte Tile Slot
+                        // Circular Date Pill: Highlight ONLY "Today" and Hover state
                         Rectangle {
-                            anchors.fill: parent
-                            radius: Math.round(8 * Theme.uiScale)
+                            id: dayPill
+                            anchors.centerIn: parent
+                            width: Math.round(34 * Theme.uiScale)
+                            height: Math.round(34 * Theme.uiScale)
+                            radius: width / 2 // Perfect circular pill
+                            border.width: 0
 
-                            // Background: Today is accent, Hover is surfaceHover, default is transparent
                             color: {
                                 if (isToday) return Theme.accent;
-                                if (dayMouse.containsMouse) return Theme.surfaceHover;
+                                if (dayMouse.containsMouse && isCurrentMonth) return Qt.rgba(255, 255, 255, 0.08);
                                 return "transparent";
                             }
 
-                            // Subtle structural slot border for current month (creates authentic calendar layer)
-                            border.color: {
-                                if (isToday) return Theme.accent;
-                                if (dayMouse.containsMouse) return Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.35);
-                                if (isCurrentMonth) return Qt.rgba(1, 1, 1, 0.04);
-                                return "transparent";
-                            }
-                            border.width: 1
-
-                            Behavior on color { ColorAnimation { duration: 100 } }
-                            Behavior on border.color { ColorAnimation { duration: 100 } }
+                            Behavior on color { ColorAnimation { duration: 120 } }
+                            scale: (dayMouse.pressed && isCurrentMonth) ? 0.92 : 1.0
+                            Behavior on scale { NumberAnimation { duration: 100 } }
 
                             Text {
                                 anchors.centerIn: parent
                                 text: displayDay.toString()
                                 color: {
-                                    if (isToday) return "#000000"; // Sharp contrast on solid accent pill
-                                    if (!isCurrentMonth) return Qt.rgba(Theme.subtextDim.r, Theme.subtextDim.g, Theme.subtextDim.b, 0.28); // Elegant ghost depth
+                                    if (isToday) return "#000000"; // Deep contrast on accent circle
+                                    if (!isCurrentMonth) return Qt.rgba(Theme.subtextDim.r, Theme.subtextDim.g, Theme.subtextDim.b, 0.28);
                                     if (index % 7 === 0) return Theme.colorSun; // Sunday Red
                                     if (index % 7 === 6) return Theme.colorSat; // Saturday Blue
                                     return Theme.fgSoft;
@@ -414,6 +419,12 @@ Item {
                         }
                     }
                 }
+            }
+
+            // Balanced bottom negative space
+            Item {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
             }
         }
     }

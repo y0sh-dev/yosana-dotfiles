@@ -107,7 +107,8 @@ Item {
 
                 Text {
                     text: "Listening"
-                    color: Theme.subtext
+                    color: Theme.fg
+                    opacity: 0.72 // TopBar-matching typography, slightly dimmed during standby
                     font.pixelSize: 16
                     font.bold: true
                     font.family: Theme.fontFamily
@@ -121,11 +122,11 @@ Item {
                     delegate: Text {
                         text: "•"
                         font.pixelSize: 16
-                        color: Theme.accent
+                        color: Theme.fg
                         anchors.verticalCenter: parent.verticalCenter
 
-                        // Smooth pulsing opacity with 2*PI frequency
-                        opacity: 0.25 + 0.75 * Math.max(0, Math.sin(mediaRoot.animPhase * 2 + index * 0.9))
+                        // Smooth pulsing opacity aligned with slightly dimmed standby theme
+                        opacity: (0.30 + 0.60 * Math.max(0, Math.sin(mediaRoot.animPhase * 2 + index * 0.9))) * 0.72
                         Behavior on color { ColorAnimation { duration: Theme.animDuration; easing.type: Theme.animEasing } }
                     }
                 }

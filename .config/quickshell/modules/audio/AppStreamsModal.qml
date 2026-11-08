@@ -1,15 +1,17 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import Quickshell
 import Quickshell.Services.Pipewire
 import "../../services"
+import "../../components"
 
 ColumnLayout {
     id: appStreamsRoot
 
     signal backClicked()
 
-    spacing: 14
+    spacing: Math.round(14 * Theme.uiScale)
 
     // Strict filter for audio playback streams (filters out microphone capture streams)
     function isPlaybackStream(n) {
@@ -51,9 +53,9 @@ ColumnLayout {
         spacing: 10
 
         Rectangle {
-            implicitWidth: 84
-            implicitHeight: 32
-            radius: 8
+            implicitWidth: Math.round(84 * Theme.uiScale)
+            implicitHeight: Math.round(32 * Theme.uiScale)
+            radius: Math.round(8 * Theme.uiScale)
             color: backMouse.containsMouse ? Theme.surfaceHover : Theme.surface
             border.color: backMouse.containsMouse ? Theme.accent : Theme.border
             border.width: 1
@@ -115,143 +117,159 @@ ColumnLayout {
     }
 
     // =========================================================================
-    // Active Streams List
+    // Scrollable Active Streams List (Fixed Height, Internal Flickable)
     // =========================================================================
-    ColumnLayout {
+    Flickable {
+        id: flickable
         Layout.fillWidth: true
-        spacing: 10
+        Layout.fillHeight: true
+        Layout.rightMargin: -12
+        contentWidth: width - 12
+        contentHeight: streamContentLayout.implicitHeight
+        clip: true
+        boundsBehavior: Flickable.StopAtBounds
 
-        Repeater {
-            model: appStreamsRoot.uniqueStreams
+        ScrollBar.vertical: ModernScrollBar {
+            targetFlickable: flickable
+        }
 
-            delegate: Rectangle {
-                required property var modelData
-                Layout.fillWidth: true
-                implicitHeight: 74
-                radius: 12
-                color: Theme.surface
-                border.color: Theme.border
-                border.width: 1
+        ColumnLayout {
+            id: streamContentLayout
+            width: flickable.contentWidth
+            spacing: 10
 
-                readonly property real streamVol: modelData.audio ? modelData.audio.volume : 0.0
-                readonly property bool streamMuted: modelData.audio ? modelData.audio.muted : false
-                readonly property string appName: {
-                    var p = modelData.properties || {};
-                    return p["application.name"] || modelData.description || modelData.name || ("App #" + modelData.id);
-                }
+            Repeater {
+                model: appStreamsRoot.uniqueStreams
 
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: 14
-                    spacing: 10
+                delegate: Rectangle {
+                    required property var modelData
+                    Layout.fillWidth: true
+                    implicitHeight: 74
+                    radius: 12
+                    color: Theme.surface
+                    border.color: Theme.border
+                    border.width: 1
 
-                    RowLayout {
-                        Layout.fillWidth: true
+                    readonly property real streamVol: modelData.audio ? modelData.audio.volume : 0.0
+                    readonly property bool streamMuted: modelData.audio ? modelData.audio.muted : false
+                    readonly property string appName: {
+                        var p = modelData.properties || {};
+                        return p["application.name"] || modelData.description || modelData.name || ("App #" + modelData.id);
+                    }
+
+                    ColumnLayout {
+                        anchors.fill: parent
+                        anchors.margins: 14
                         spacing: 10
 
-                        // Application Icon / Badge
-                        Text {
-                            text: "󰎆"
-                            color: streamMuted ? Theme.subtextDim : Theme.accent
-                            font.pixelSize: 16
-                            font.family: Theme.fontFamily
-                        }
-
-                        // Application Name (Clear 15px Bold)
-                        Text {
-                            text: appName
-                            color: Theme.fg
-                            font.pixelSize: 15
-                            font.bold: true
-                            font.family: Theme.fontFamily
-                            elide: Text.ElideRight
+                        RowLayout {
                             Layout.fillWidth: true
-                        }
+                            spacing: 10
 
-                        // Volume Percentage (15px Bold)
-                        Text {
-                            text: Math.round(streamVol * 100) + "%"
-                            color: streamMuted ? Theme.urgent : Theme.fgSoft
-                            font.pixelSize: 15
-                            font.bold: true
-                            font.family: Theme.fontFamily
-                        }
-
-                        // App mute toggle
-                        Rectangle {
-                            implicitWidth: 30
-                            implicitHeight: 26
-                            radius: 6
-                            color: streamMuted ? Theme.urgent : (appMuteMouse.containsMouse ? Theme.surfaceHover : "transparent")
-                            border.color: appMuteMouse.containsMouse ? Theme.border : "transparent"
-                            border.width: 1
-
+                            // Application Icon / Badge
                             Text {
-                                anchors.centerIn: parent
-                                text: streamMuted ? "󰖁" : "󰕾"
-                                color: streamMuted ? Theme.bgDark : (appMuteMouse.containsMouse ? Theme.accent : Theme.fgSoft)
-                                font.pixelSize: 14
+                                text: "󰎆"
+                                color: streamMuted ? Theme.subtextDim : Theme.accent
+                                font.pixelSize: 16
                                 font.family: Theme.fontFamily
                             }
 
-                            MouseArea {
-                                id: appMuteMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    if (modelData.audio) {
-                                        modelData.audio.muted = !modelData.audio.muted;
+                            // Application Name (Clear 15px Bold)
+                            Text {
+                                text: appName
+                                color: Theme.fg
+                                font.pixelSize: 15
+                                font.bold: true
+                                font.family: Theme.fontFamily
+                                elide: Text.ElideRight
+                                Layout.fillWidth: true
+                            }
+
+                            // Volume Percentage (15px Bold)
+                            Text {
+                                text: Math.round(streamVol * 100) + "%"
+                                color: streamMuted ? Theme.urgent : Theme.fgSoft
+                                font.pixelSize: 15
+                                font.bold: true
+                                font.family: Theme.fontFamily
+                            }
+
+                            // App mute toggle
+                            Rectangle {
+                                implicitWidth: 30
+                                implicitHeight: 26
+                                radius: 6
+                                color: streamMuted ? Theme.urgent : (appMuteMouse.containsMouse ? Theme.surfaceHover : "transparent")
+                                border.color: appMuteMouse.containsMouse ? Theme.border : "transparent"
+                                border.width: 1
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: streamMuted ? "󰖁" : "󰕾"
+                                    color: streamMuted ? Theme.bgDark : (appMuteMouse.containsMouse ? Theme.accent : Theme.fgSoft)
+                                    font.pixelSize: 14
+                                    font.family: Theme.fontFamily
+                                }
+
+                                MouseArea {
+                                    id: appMuteMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        if (modelData.audio) {
+                                            modelData.audio.muted = !modelData.audio.muted;
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
 
-                    ModernSlider {
-                        Layout.fillWidth: true
-                        from: 0.0
-                        to: 1.0
-                        value: streamVol
-                        isMuted: streamMuted
-                        onMoved: (val) => {
-                            if (modelData.audio) {
-                                modelData.audio.volume = val;
+                        ModernSlider {
+                            Layout.fillWidth: true
+                            from: 0.0
+                            to: 1.0
+                            value: streamVol
+                            isMuted: streamMuted
+                            onMoved: (val) => {
+                                if (modelData.audio) {
+                                    modelData.audio.volume = val;
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
-        // Empty state
-        Rectangle {
-            visible: appStreamsRoot.uniqueStreams.length === 0
-            Layout.fillWidth: true
-            implicitHeight: 90
-            radius: 12
-            color: Theme.surface
-            border.color: Theme.border
-            border.width: 1
+            // Empty state
+            Rectangle {
+                visible: appStreamsRoot.uniqueStreams.length === 0
+                Layout.fillWidth: true
+                implicitHeight: 90
+                radius: 12
+                color: Theme.surface
+                border.color: Theme.border
+                border.width: 1
 
-            ColumnLayout {
-                anchors.centerIn: parent
-                spacing: 8
+                ColumnLayout {
+                    anchors.centerIn: parent
+                    spacing: 8
 
-                Text {
-                    text: "󰝟"
-                    color: Theme.subtextDim
-                    font.pixelSize: 24
-                    font.family: Theme.fontFamily
-                    Layout.alignment: Qt.AlignHCenter
-                }
+                    Text {
+                        text: "󰝟"
+                        color: Theme.subtextDim
+                        font.pixelSize: 24
+                        font.family: Theme.fontFamily
+                        Layout.alignment: Qt.AlignHCenter
+                    }
 
-                Text {
-                    text: "No active application audio streams"
-                    color: Theme.subtextDim
-                    font.pixelSize: 14
-                    font.family: Theme.fontFamily
-                    Layout.alignment: Qt.AlignHCenter
+                    Text {
+                        text: "No active application audio streams"
+                        color: Theme.subtextDim
+                        font.pixelSize: 14
+                        font.family: Theme.fontFamily
+                        Layout.alignment: Qt.AlignHCenter
+                    }
                 }
             }
         }
