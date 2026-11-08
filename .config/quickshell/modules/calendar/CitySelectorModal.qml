@@ -16,141 +16,148 @@ Item {
         selectedPrefecture = null;
     }
 
-    // 1. Navigation Top Bar
-    RowLayout {
-        id: selectorHeader
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
-        height: 34
+    // Unified Surface Container Card
+    Rectangle {
+        anchors.fill: parent
+        color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.45)
+        border.color: Qt.rgba(255, 255, 255, 0.06)
+        border.width: 1
+        radius: Math.round(18 * Theme.uiScale)
 
-        // Left Action: Back (if in cities) or Close (if in prefectures)
-        Rectangle {
-            implicitWidth: backRow.implicitWidth + 14
-            implicitHeight: 28
-            radius: 6
-            color: backMouse.containsMouse ? Theme.surfaceHover : Theme.surface
-            border.color: Theme.border
-            border.width: 1
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: Math.round(16 * Theme.uiScale)
+            spacing: Math.round(10 * Theme.uiScale)
 
-            Row {
-                id: backRow
-                anchors.centerIn: parent
-                spacing: 4
+            // 1. Navigation Top Bar
+            RowLayout {
+                id: selectorHeader
+                Layout.fillWidth: true
+                height: 34
+
+                // Left Action: Back (if in cities) or Close (if in prefectures)
+                Rectangle {
+                    implicitWidth: backRow.implicitWidth + 14
+                    implicitHeight: 28
+                    radius: 6
+                    color: backMouse.containsMouse ? Theme.surfaceHover : Theme.surface
+                    border.color: Theme.border
+                    border.width: 1
+
+                    Row {
+                        id: backRow
+                        anchors.centerIn: parent
+                        spacing: 4
+                        Text {
+                            text: citySelectorRoot.selectorView === "cities" ? "‹" : "✕"
+                            color: Theme.accent
+                            font.pixelSize: 14
+                            font.bold: true
+                        }
+                        Text {
+                            text: citySelectorRoot.selectorView === "cities" ? "Back" : "Close"
+                            color: Theme.fg
+                            font.pixelSize: 12
+                            font.bold: true
+                            font.family: Theme.fontFamily
+                        }
+                    }
+
+                    MouseArea {
+                        id: backMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (citySelectorRoot.selectorView === "cities") {
+                                citySelectorRoot.selectorView = "prefectures";
+                            } else {
+                                citySelectorRoot.closeRequested();
+                            }
+                        }
+                    }
+                }
+
+                // Center: Title of the current selector level
                 Text {
-                    text: citySelectorRoot.selectorView === "cities" ? "‹" : "✕"
-                    color: Theme.accent
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
+                    text: {
+                        if (citySelectorRoot.selectorView === "cities" && citySelectorRoot.selectedPrefecture) {
+                            return citySelectorRoot.selectedPrefecture.name + " (" + citySelectorRoot.selectedPrefecture.romaji + ")";
+                        }
+                        return "Select Region (47 Prefectures)";
+                    }
+                    color: Theme.fgSoft
                     font.pixelSize: 14
                     font.bold: true
-                }
-                Text {
-                    text: citySelectorRoot.selectorView === "cities" ? "Back" : "Close"
-                    color: Theme.fg
-                    font.pixelSize: 12
-                    font.bold: true
                     font.family: Theme.fontFamily
+                    elide: Text.ElideRight
                 }
-            }
 
-            MouseArea {
-                id: backMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    if (citySelectorRoot.selectorView === "cities") {
-                        citySelectorRoot.selectorView = "prefectures";
-                    } else {
-                        citySelectorRoot.closeRequested();
+                // Right Action: "Select Prefecture" (Save / Select prefecture as whole)
+                Rectangle {
+                    visible: citySelectorRoot.selectorView === "cities" && citySelectorRoot.selectedPrefecture !== null
+                    implicitWidth: selectPrefRow.implicitWidth + 14
+                    implicitHeight: 28
+                    radius: 6
+                    color: selectPrefMouse.containsMouse ? Theme.accent : Theme.surface
+                    border.color: Theme.accent
+                    border.width: 1
+
+                    Row {
+                        id: selectPrefRow
+                        anchors.centerIn: parent
+                        spacing: 4
+                        Text {
+                            text: "󰄬"
+                            color: selectPrefMouse.containsMouse ? "#000000" : Theme.accent
+                            font.pixelSize: 12
+                        }
+                        Text {
+                            text: "Select Prefecture"
+                            color: selectPrefMouse.containsMouse ? "#000000" : Theme.fg
+                            font.pixelSize: 12
+                            font.bold: true
+                            font.family: Theme.fontFamily
+                        }
+                    }
+
+                    MouseArea {
+                        id: selectPrefMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (citySelectorRoot.selectedPrefecture) {
+                                var pref = citySelectorRoot.selectedPrefecture;
+                                WeatherService.setCity({
+                                    name: pref.name,
+                                    romaji: pref.romaji,
+                                    lat: pref.lat,
+                                    lon: pref.lon
+                                }, pref.name);
+                                citySelectorRoot.closeRequested();
+                            }
+                        }
                     }
                 }
             }
-        }
 
-        // Center: Title of the current selector level
-        Text {
-            Layout.fillWidth: true
-            horizontalAlignment: Text.AlignHCenter
-            text: {
-                if (citySelectorRoot.selectorView === "cities" && citySelectorRoot.selectedPrefecture) {
-                    return citySelectorRoot.selectedPrefecture.name + " (" + citySelectorRoot.selectedPrefecture.romaji + ")";
-                }
-                return "Select Region (47 Prefectures)";
-            }
-            color: Theme.fgSoft
-            font.pixelSize: 14
-            font.bold: true
-            font.family: Theme.fontFamily
-            elide: Text.ElideRight
-        }
+            // 2. Scrollable Content Area (Prefectures Grid OR Cities Grid)
+            Item {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
 
-        // Right Action: "Select Prefecture" (Save / Select prefecture as whole)
-        Rectangle {
-            visible: citySelectorRoot.selectorView === "cities" && citySelectorRoot.selectedPrefecture !== null
-            implicitWidth: selectPrefRow.implicitWidth + 14
-            implicitHeight: 28
-            radius: 6
-            color: selectPrefMouse.containsMouse ? Theme.accent : Theme.surface
-            border.color: Theme.accent
-            border.width: 1
+                Flickable {
+                    id: selectorFlickable
+                    anchors.fill: parent
+                    contentWidth: width
+                    contentHeight: contentColumn.height + 16
+                    boundsBehavior: Flickable.StopAtBounds
 
-            Row {
-                id: selectPrefRow
-                anchors.centerIn: parent
-                spacing: 4
-                Text {
-                    text: "󰄬"
-                    color: selectPrefMouse.containsMouse ? "#000000" : Theme.accent
-                    font.pixelSize: 12
-                }
-                Text {
-                    text: "Select Prefecture"
-                    color: selectPrefMouse.containsMouse ? "#000000" : Theme.fg
-                    font.pixelSize: 12
-                    font.bold: true
-                    font.family: Theme.fontFamily
-                }
-            }
-
-            MouseArea {
-                id: selectPrefMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    if (citySelectorRoot.selectedPrefecture) {
-                        var pref = citySelectorRoot.selectedPrefecture;
-                        WeatherService.setCity({
-                            name: pref.name,
-                            romaji: pref.romaji,
-                            lat: pref.lat,
-                            lon: pref.lon
-                        }, pref.name);
-                        citySelectorRoot.closeRequested();
-                    }
-                }
-            }
-        }
-    }
-
-    // 2. Scrollable Content Area (Prefectures Grid OR Cities Grid)
-    Rectangle {
-        anchors.top: selectorHeader.bottom
-        anchors.bottom: parent.bottom
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.topMargin: 8
-        color: "transparent"
-        clip: true
-
-        Flickable {
-            id: selectorFlickable
-            anchors.fill: parent
-            contentWidth: width
-            contentHeight: contentColumn.height + 16
-            boundsBehavior: Flickable.StopAtBounds
-
-            ScrollBar.vertical: ScrollBar {
+                    ScrollBar.vertical: ScrollBar {
                 id: vbar
                 active: true
                 policy: ScrollBar.AsNeeded
@@ -282,4 +289,6 @@ Item {
             }
         }
     }
+}
+}
 }

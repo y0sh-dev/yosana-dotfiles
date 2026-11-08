@@ -23,7 +23,7 @@ PanelWindow {
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "calendar"
-    WlrLayershell.exclusiveZone: -1 // Never squish or resize background windows!
+    WlrLayershell.exclusiveZone: -1 // Never squish or resize background windows
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
     // Center anchored under the clock island
@@ -32,10 +32,14 @@ PanelWindow {
     }
     margins.top: Math.round(58 * Theme.uiScale) // 48 (barHeight) + 4 (topMargin) + 6 (gap)
 
-    // Scaled adaptively via Theme.uiScale: WQHD baseline 860px x 490px
-    // 1080p: ~645px x 368px, 1440p: 860px x 490px, 4K: 1290px x 735px
-    implicitWidth: Math.round(860 * Theme.uiScale)
-    implicitHeight: Math.round(490 * Theme.uiScale)
+    // Baseline dimensions: 920px x 472px
+    // At uiScale 1.0 this yields 432x432 square cards:
+    //   width  = (920 - 2*20 margins - 16 gap) / 2 = 432
+    //   height = 472 - 2*20 margins = 432
+    // Shrinking from 540 to 472 removes the ~92px calendar bottom void while
+    // preserving the deliberate 56px weekday->date breathing space.
+    implicitWidth: Math.round(920 * Theme.uiScale)
+    implicitHeight: Math.round(472 * Theme.uiScale)
     color: "transparent"
 
     visible: isOpen || contentMonolith.opacity > 0
@@ -46,8 +50,8 @@ PanelWindow {
         anchors.fill: parent
         // Deep obsidian black with gentle translucency (90%) allowing Hyprland blur to shine through
         color: Qt.rgba(0, 0, 0, 0.90)
-        radius: Math.round(Theme.radiusIsland * Theme.uiScale) // ~20px
-        border.width: 0 // Pure matte aesthetic: zero harsh border lines
+        radius: Math.round(Theme.radiusIsland * Theme.uiScale) // 20px
+        border.width: 0
 
         opacity: calendarRoot.isOpen ? 1.0 : 0.0
         transform: Translate {
@@ -57,68 +61,44 @@ PanelWindow {
         Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
 
         // ====================================================================
-        // ABSOLUTE CENTER SEPARATOR (Aligns 100% with screen center & clock)
+        // UNIFIED CARD LAYOUT: Left (Clock/Date & Weather) + Right (Calendar)
+        // Clean Proximity: Generous external padding and 16px inter-card space
         // ====================================================================
-        Rectangle {
-            id: centerAxis
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            anchors.topMargin: Math.round(20 * Theme.uiScale)
-            anchors.bottomMargin: Math.round(20 * Theme.uiScale)
-            width: 1
-            color: Theme.border
-            opacity: 0.25 // Subtle matte separation
-        }
-
-        // ====================================================================
-        // LEFT COLUMN: Time & Meteorology (Left half: 0 to 430px)
-        // ====================================================================
-        Item {
-            id: leftHalf
-            anchors.left: parent.left
-            anchors.right: centerAxis.left
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            anchors.leftMargin: Math.round(24 * Theme.uiScale)
-            anchors.rightMargin: Math.round(24 * Theme.uiScale)
-            anchors.topMargin: Math.round(20 * Theme.uiScale)
-            anchors.bottomMargin: Math.round(20 * Theme.uiScale)
-
-            // VIEW A: Main Clock & Weather Info
-            ClockWeatherPane {
-                anchors.fill: parent
-                visible: !calendarRoot.isCitySelectorOpen
-                onOpenCitySelector: {
-                    citySelectorModal.reset();
-                    calendarRoot.isCitySelectorOpen = true;
-                }
-            }
-
-            // VIEW B: Full 47 Prefectures & Municipalities City Selector Modal
-            CitySelectorModal {
-                id: citySelectorModal
-                anchors.fill: parent
-                visible: calendarRoot.isCitySelectorOpen
-                onCloseRequested: {
-                    calendarRoot.isCitySelectorOpen = false;
-                }
-            }
-        }
-
-        // ====================================================================
-        // RIGHT COLUMN: Calendar Enclosure (Right half: 430px to 860px)
-        // ====================================================================
-        Item {
-            id: rightHalf
-            anchors.left: centerAxis.right
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
+        RowLayout {
+            anchors.fill: parent
             anchors.margins: Math.round(20 * Theme.uiScale)
+            spacing: Math.round(16 * Theme.uiScale)
 
+            // LEFT COLUMN (Clock & Date Card + Weather Card)
+            Item {
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+
+                ClockWeatherPane {
+                    anchors.fill: parent
+                    visible: !calendarRoot.isCitySelectorOpen
+                    onOpenCitySelector: {
+                        citySelectorModal.reset();
+                        calendarRoot.isCitySelectorOpen = true;
+                    }
+                }
+
+                CitySelectorModal {
+                    id: citySelectorModal
+                    anchors.fill: parent
+                    visible: calendarRoot.isCitySelectorOpen
+                    onCloseRequested: {
+                        calendarRoot.isCitySelectorOpen = false;
+                    }
+                }
+            }
+
+            // RIGHT COLUMN (Calendar Card)
             MonthView {
-                anchors.fill: parent
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
             }
         }
     }

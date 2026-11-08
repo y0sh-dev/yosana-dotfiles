@@ -2,31 +2,35 @@ import QtQuick
 import QtQuick.Layouts
 import "../../services"
 
-Item {
+ColumnLayout {
     id: clockWeatherPaneRoot
 
     signal openCitySelector()
 
     readonly property var currentTime: TimeService.now
+    spacing: Math.round(14 * Theme.uiScale) // Clear 14px gap between the two cards
 
-    Column {
-        id: mainWeatherColumn
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.left: parent.left
-        anchors.right: parent.right
-        spacing: 0
+    // =========================================================================
+    // CARD 1 (TOP): Clock & Date Widget (Surface Container)
+    // =========================================================================
+    Rectangle {
+        Layout.fillWidth: true
+        Layout.preferredHeight: Math.round(136 * Theme.uiScale)
+        color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.45)
+        border.color: Qt.rgba(255, 255, 255, 0.06)
+        border.width: 1
+        radius: Math.round(18 * Theme.uiScale)
 
-        // 1. Time & Full Date (Strict geometric center of Left Half)
         Column {
-            width: parent.width
-            spacing: 4
+            anchors.centerIn: parent
+            spacing: Math.round(6 * Theme.uiScale)
 
-            // Full Seconds Clock: hh:mm (54px fgSoft) + :ss (36px subtextDim) + plain GMT+9 (16px subtextDim)
+            // 1. Clock Row: Exact Original Font Sizes (54px / 36px / 16px)
             Row {
                 anchors.horizontalCenter: parent.horizontalCenter
                 spacing: Math.round(8 * Theme.uiScale)
 
-                // Hours and minutes (54px eye-friendly soft off-white)
+                // Hours and minutes (54px fgSoft Bold)
                 Text {
                     text: Qt.formatDateTime(clockWeatherPaneRoot.currentTime, "hh:mm")
                     color: Theme.fgSoft
@@ -35,7 +39,7 @@ Item {
                     font.family: Theme.fontFamily
                 }
 
-                // Seconds (36px = 2/3 size, uniform secondary dim)
+                // Seconds (36px subtextDim Bold)
                 Text {
                     text: Qt.formatDateTime(clockWeatherPaneRoot.currentTime, ":ss")
                     color: Theme.subtextDim
@@ -45,7 +49,7 @@ Item {
                     anchors.baseline: parent.children[0].baseline
                 }
 
-                // Plain text GMT+9 (16px ≈ 1/3 size, uniform secondary dim)
+                // Plain text GMT+9 (16px subtextDim Bold)
                 Text {
                     text: "GMT+9"
                     color: Theme.subtextDim
@@ -56,12 +60,12 @@ Item {
                 }
             }
 
-            // Weekday & Date (Weekday fgSoft matching hh:mm; Date subtextDim matching :ss & GMT)
+            // 2. Weekday & Date: Exact Original Sizes (22px Weekday, 20px Date)
             Row {
                 anchors.horizontalCenter: parent.horizontalCenter
                 spacing: Math.round(8 * Theme.uiScale)
 
-                // Weekday (22px bold fgSoft: exactly same brightness as hh:mm)
+                // Weekday (22px bold fgSoft)
                 Text {
                     text: Qt.formatDateTime(clockWeatherPaneRoot.currentTime, "dddd")
                     color: Theme.fgSoft
@@ -72,290 +76,292 @@ Item {
                 }
 
                 Text {
-                    text: "•"
+                    text: "·"
                     color: Theme.subtextDim
-                    font.pixelSize: Math.round(16 * Theme.uiScale)
+                    font.pixelSize: Math.round(18 * Theme.uiScale)
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
-                // Month (20px bold, lowercase: november)
+                // Date: Month Day, Year (20px bold)
                 Text {
-                    text: Qt.formatDateTime(clockWeatherPaneRoot.currentTime, "MMMM").toLowerCase()
+                    text: Qt.formatDateTime(clockWeatherPaneRoot.currentTime, "MMMM d, yyyy")
                     color: Theme.subtextDim
                     font.pixelSize: Math.round(20 * Theme.uiScale)
                     font.bold: true
-                    font.family: Theme.fontFamily
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-
-                // Day with 2-digit fixed reserve width (20px bold)
-                Text {
-                    text: Qt.formatDateTime(clockWeatherPaneRoot.currentTime, "d")
-                    color: Theme.subtextDim
-                    font.pixelSize: Math.round(20 * Theme.uiScale)
-                    font.bold: true
-                    font.family: Theme.fontFamily
-                    width: font.pixelSize * 1.3
-                    horizontalAlignment: Text.AlignRight
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-
-                // Year (20px)
-                Text {
-                    text: ", " + Qt.formatDateTime(clockWeatherPaneRoot.currentTime, "yyyy")
-                    color: Theme.subtextDim
-                    font.pixelSize: Math.round(20 * Theme.uiScale)
                     font.family: Theme.fontFamily
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }
         }
+    }
 
-        // Breathing Space between Time & Weather (Refined target spacing: 14px + 1px line + 14px)
-        Item { width: 1; height: 14 }
-        Rectangle {
-            width: parent.width
-            height: 1
-            color: Theme.border
-            opacity: 0.2 // Soft matte line
-        }
-        Item { width: 1; height: 14 }
+    // =========================================================================
+    // CARD 2 (BOTTOM): Weather & Forecast Widget (Surface Container)
+    // =========================================================================
+    Rectangle {
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.45)
+        border.color: Qt.rgba(255, 255, 255, 0.06)
+        border.width: 1
+        radius: Math.round(18 * Theme.uiScale)
 
-        // 2. Weather Section (Current Weather with JMA Model Data)
-        Item {
-            width: parent.width
-            height: 88 // Generous height for unconstrained breathing space
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: Math.round(18 * Theme.uiScale)
+            spacing: Math.round(12 * Theme.uiScale)
 
-            // Left Block: Icon (58px) + [Temp (44px) -> Directly Below: Condition text (15px)]
-            Row {
-                anchors.left: parent.left
-                anchors.leftMargin: 8
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 14
+            // Section A: Current Weather Prominent Header (Exact Original Font Sizes: Icon 58px, Temp 44px)
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Math.round(14 * Theme.uiScale)
 
-                Text {
-                    text: WeatherService.icon
-                    color: Theme.accent
-                    font.pixelSize: 58
-                    font.family: Theme.fontFamily
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-
-                // Column: Temperature on top, Condition directly underneath temperature
-                Column {
-                    spacing: 3
-                    anchors.verticalCenter: parent.verticalCenter
+                // Left: Weather Icon (58px) + [Temp (44px) -> Condition text (15px)]
+                Row {
+                    spacing: Math.round(14 * Theme.uiScale)
+                    Layout.alignment: Qt.AlignVCenter
 
                     Text {
-                        text: WeatherService.temp
-                        color: Theme.fgSoft
-                        font.pixelSize: 44
-                        font.bold: true
+                        text: WeatherService.icon
+                        color: Theme.accent
+                        font.pixelSize: Math.round(58 * Theme.uiScale)
                         font.family: Theme.fontFamily
+                        anchors.verticalCenter: parent.verticalCenter
                     }
 
-                    Text {
-                        text: WeatherService.desc
-                        color: Theme.subtext
-                        font.pixelSize: 15
-                        font.bold: true
-                        font.family: Theme.fontFamily
-                        elide: Text.ElideRight
-                        width: 150
-                    }
-                }
-            }
-
-            // Right Block: Location Pill -> Directly Below: Max & Min Temperature Stack (Generous 10px spacing)
-            Column {
-                anchors.right: parent.right
-                anchors.rightMargin: 8
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 9 // Relaxed breathing room between location pill and temps
-
-                // Location Pill (Romaji representation: Tokyo, Toride, Mito, etc.)
-                Rectangle {
-                    implicitWidth: cityRow.implicitWidth + 24
-                    implicitHeight: 30
-                    radius: 15
-                    color: cityMouse.containsMouse ? Theme.surfaceHover : Theme.surface
-                    border.color: cityMouse.containsMouse ? Theme.accent : Qt.rgba(Theme.border.r, Theme.border.g, Theme.border.b, 0.4)
-                    border.width: 1
-
-                    Row {
-                        id: cityRow
-                        anchors.centerIn: parent
-                        spacing: 7
+                    Column {
+                        spacing: 3
+                        anchors.verticalCenter: parent.verticalCenter
 
                         Text {
-                            text: "󰍎"
-                            color: Theme.accent
-                            font.pixelSize: 14
+                            text: WeatherService.temp
+                            color: Theme.fgSoft
+                            font.pixelSize: Math.round(44 * Theme.uiScale)
+                            font.bold: true
                             font.family: Theme.fontFamily
-                            anchors.verticalCenter: parent.verticalCenter
                         }
 
                         Text {
-                            text: WeatherService.currentRomaji
+                            text: WeatherService.desc
                             color: Theme.fgSoft
-                            font.pixelSize: 13
+                            font.pixelSize: Math.round(15 * Theme.uiScale)
+                            font.bold: true
+                            font.family: Theme.fontFamily
+                        }
+                    }
+                }
+
+                Item { Layout.fillWidth: true }
+
+                // Right: Location Pill + Min/Max Stack (Exact Original 15px)
+                Column {
+                    spacing: Math.round(8 * Theme.uiScale)
+                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+
+                    // Location Pill
+                    Rectangle {
+                        implicitWidth: cityRow.implicitWidth + 24
+                        implicitHeight: Math.round(30 * Theme.uiScale)
+                        radius: height / 2
+                        color: cityMouse.containsMouse ? Theme.surfaceHover : Qt.rgba(1, 1, 1, 0.04)
+                        border.color: cityMouse.containsMouse ? Theme.accent : Qt.rgba(255, 255, 255, 0.08)
+                        border.width: 1
+
+                        Row {
+                            id: cityRow
+                            anchors.centerIn: parent
+                            spacing: Math.round(7 * Theme.uiScale)
+
+                            Text {
+                                text: "󰍎"
+                                color: Theme.accent
+                                font.pixelSize: Math.round(14 * Theme.uiScale)
+                                font.family: Theme.fontFamily
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+
+                            Text {
+                                text: WeatherService.currentRomaji
+                                color: Theme.fgSoft
+                                font.pixelSize: Math.round(13 * Theme.uiScale)
+                                font.bold: true
+                                font.family: Theme.fontFamily
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+
+                            Text {
+                                text: "▾"
+                                color: Theme.subtextDim
+                                font.pixelSize: Math.round(11 * Theme.uiScale)
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                        }
+
+                        MouseArea {
+                            id: cityMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: clockWeatherPaneRoot.openCitySelector()
+                        }
+                    }
+
+                    // Max / Min Text (15px bold)
+                    Row {
+                        anchors.right: parent.right
+                        spacing: Math.round(8 * Theme.uiScale)
+
+                        Text {
+                            text: WeatherService.maxTemp + " ↑"
+                            color: Theme.fgSoft
+                            font.pixelSize: Math.round(15 * Theme.uiScale)
+                            font.bold: true
+                            font.family: Theme.fontFamily
+                        }
+
+                        Text {
+                            text: WeatherService.minTemp + " ↓"
+                            color: Theme.subtextDim
+                            font.pixelSize: Math.round(15 * Theme.uiScale)
+                            font.bold: true
+                            font.family: Theme.fontFamily
+                        }
+                    }
+                }
+            }
+
+            // Section B: Minimalist Metrics Pill Row (Rain, Wind, Humidity: Icons 18px, Text 13px bold)
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Math.round(8 * Theme.uiScale)
+
+                // Metric Pill 1: Rain
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: Math.round(34 * Theme.uiScale)
+                    radius: Math.round(10 * Theme.uiScale)
+                    color: Qt.rgba(1, 1, 1, 0.03)
+                    border.color: Qt.rgba(255, 255, 255, 0.05)
+                    border.width: 1
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: Math.round(6 * Theme.uiScale)
+                        Text {
+                            text: "󰖖"
+                            color: Theme.accent
+                            font.pixelSize: Math.round(18 * Theme.uiScale)
+                            font.family: Theme.fontFamily
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        Text {
+                            text: "Rain " + WeatherService.rainChance
+                            color: Theme.fgSoft
+                            font.pixelSize: Math.round(13 * Theme.uiScale)
                             font.bold: true
                             font.family: Theme.fontFamily
                             anchors.verticalCenter: parent.verticalCenter
                         }
+                    }
+                }
 
+                // Metric Pill 2: Wind
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: Math.round(34 * Theme.uiScale)
+                    radius: Math.round(10 * Theme.uiScale)
+                    color: Qt.rgba(1, 1, 1, 0.03)
+                    border.color: Qt.rgba(255, 255, 255, 0.05)
+                    border.width: 1
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: Math.round(6 * Theme.uiScale)
                         Text {
-                            text: "▾"
-                            color: Theme.subtextDim
-                            font.pixelSize: 11
+                            text: "󰖝"
+                            color: Theme.accent
+                            font.pixelSize: Math.round(18 * Theme.uiScale)
+                            font.family: Theme.fontFamily
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        Text {
+                            text: (WeatherService.windDir ? (WeatherService.windDir + " ") : "") + WeatherService.wind
+                            color: Theme.fgSoft
+                            font.pixelSize: Math.round(13 * Theme.uiScale)
+                            font.bold: true
+                            font.family: Theme.fontFamily
                             anchors.verticalCenter: parent.verticalCenter
                         }
                     }
+                }
 
-                    MouseArea {
-                        id: cityMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: clockWeatherPaneRoot.openCitySelector()
+                // Metric Pill 3: Humidity
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: Math.round(34 * Theme.uiScale)
+                    radius: Math.round(10 * Theme.uiScale)
+                    color: Qt.rgba(1, 1, 1, 0.03)
+                    border.color: Qt.rgba(255, 255, 255, 0.05)
+                    border.width: 1
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: Math.round(6 * Theme.uiScale)
+                        Text {
+                            text: "󰖎"
+                            color: Theme.accent
+                            font.pixelSize: Math.round(18 * Theme.uiScale)
+                            font.family: Theme.fontFamily
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        Text {
+                            text: "Hum " + WeatherService.humidity
+                            color: Theme.fgSoft
+                            font.pixelSize: Math.round(13 * Theme.uiScale)
+                            font.bold: true
+                            font.family: Theme.fontFamily
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
                     }
                 }
-
-                // Max & Min Temperature Stack (Soft off-white matching surrounding text, zero glare)
-                Text {
-                    text: "Max  " + WeatherService.maxTemp + " ↑"
-                    color: Theme.fgSoft
-                    font.pixelSize: 15
-                    font.bold: true
-                    font.family: Theme.fontFamily
-                }
-
-                Text {
-                    text: "Min  " + WeatherService.minTemp + " ↓"
-                    color: Theme.fgSoft
-                    font.pixelSize: 15
-                    font.bold: true
-                    font.family: Theme.fontFamily
-                }
-            }
-        }
-
-        // Breathing Space between Weather and Metrics
-        Item { width: 1; height: 6 }
-        Rectangle {
-            width: parent.width
-            height: 1
-            color: Theme.border
-            opacity: 0.2 // Soft matte line
-        }
-        Item { width: 1; height: 6 }
-
-        // 3. Detailed Weather Metrics: Vertical Hierarchy (Icon on top, stat below)
-        Row {
-            anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 38
-
-            // 降水確率
-            Column {
-                spacing: 6
-                anchors.verticalCenter: parent.verticalCenter
-                Text {
-                    text: "󰖖"
-                    color: Theme.accent
-                    font.pixelSize: 22
-                    font.family: Theme.fontFamily
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
-                Text {
-                    text: "Rain " + WeatherService.rainChance
-                    color: Theme.fgSoft
-                    font.pixelSize: 13
-                    font.bold: true
-                    font.family: Theme.fontFamily
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
             }
 
-            // 風速 & 風向
-            Column {
-                spacing: 6
-                anchors.verticalCenter: parent.verticalCenter
-                Text {
-                    text: "󰖝"
-                    color: Theme.accent
-                    font.pixelSize: 22
-                    font.family: Theme.fontFamily
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
-                Text {
-                    text: (WeatherService.windDir ? (WeatherService.windDir + " ") : "") + WeatherService.wind
-                    color: Theme.fgSoft
-                    font.pixelSize: 13
-                    font.bold: true
-                    font.family: Theme.fontFamily
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
+            // Divider: Subtle separator before Forecast
+            Rectangle {
+                Layout.fillWidth: true
+                height: 1
+                color: Theme.border
+                opacity: 0.12
             }
 
-            // 湿度
-            Column {
-                spacing: 6
-                anchors.verticalCenter: parent.verticalCenter
-                Text {
-                    text: "󰖎"
-                    color: Theme.accent
-                    font.pixelSize: 22
-                    font.family: Theme.fontFamily
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
-                Text {
-                    text: "Humidity " + WeatherService.humidity
-                    color: Theme.fgSoft
-                    font.pixelSize: 13
-                    font.bold: true
-                    font.family: Theme.fontFamily
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
-            }
-        }
+            // Section C: Two-Day Forecast Cards (Exact Original Font Sizes: Day 16px, Icon 22px, Temp 15px, Rain/Wind 14px)
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Math.round(10 * Theme.uiScale)
 
-        // Breathing Space between Metrics and Forecast Cards
-        Item { width: 1; height: 18 }
-        Rectangle {
-            width: parent.width
-            height: 1
-            color: Theme.border
-            opacity: 0.2 // Soft matte line
-        }
-        Item { width: 1; height: 18 }
-
-        // 4. Two-Day Forecast: Frameless Minimalist Layout with Single Thin Subtle Divider
-        Row {
-            anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 16
-
-            Repeater {
-                model: WeatherService.forecast
-                delegate: Row {
-                    spacing: 16
-
-                    // Day Column
-                    Item {
-                        implicitWidth: 164
-                        implicitHeight: 104
+                Repeater {
+                    model: WeatherService.forecast
+                    delegate: Rectangle {
+                        Layout.fillWidth: true
+                        implicitHeight: Math.round(96 * Theme.uiScale)
+                        radius: Math.round(12 * Theme.uiScale)
+                        color: Qt.rgba(1, 1, 1, 0.02)
+                        border.color: Qt.rgba(255, 255, 255, 0.04)
+                        border.width: 1
 
                         Column {
                             anchors.fill: parent
-                            spacing: 5
+                            anchors.margins: Math.round(12 * Theme.uiScale)
+                            spacing: Math.round(5 * Theme.uiScale)
 
-                            // Row 1: Day (TUE / WED) + Forecast Weather Icon
+                            // Row 1: Day Name (16px bold) + Icon (22px)
                             RowLayout {
                                 width: parent.width
 
                                 Text {
                                     text: modelData.day
                                     color: Theme.fgSoft
-                                    font.pixelSize: 16
+                                    font.pixelSize: Math.round(16 * Theme.uiScale)
                                     font.bold: true
                                     font.family: Theme.fontFamily
                                 }
@@ -365,81 +371,74 @@ Item {
                                 Text {
                                     text: modelData.icon
                                     color: Theme.accent
-                                    font.pixelSize: 22
+                                    font.pixelSize: Math.round(22 * Theme.uiScale)
                                     font.family: Theme.fontFamily
                                 }
                             }
 
-                            // Row 2: 気温 (Max / Min) - Prominent 15px bold
+                            // Row 2: Temperatures (Max / Min: 15px bold)
                             Row {
-                                spacing: 8
+                                spacing: Math.round(6 * Theme.uiScale)
                                 Text {
                                     text: "󰔄"
                                     color: Theme.accent
-                                    font.pixelSize: 15
+                                    font.pixelSize: Math.round(14 * Theme.uiScale)
                                     font.family: Theme.fontFamily
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
                                 Text {
                                     text: modelData.max + "  /  " + modelData.min
                                     color: Theme.fgSoft
-                                    font.pixelSize: 15
+                                    font.pixelSize: Math.round(15 * Theme.uiScale)
                                     font.bold: true
                                     font.family: Theme.fontFamily
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
                             }
 
-                            // Row 3: 降水確率 - Prominent 14px bold
+                            // Row 3: Rain Chance & Wind (14px bold)
                             Row {
-                                spacing: 8
-                                Text {
-                                    text: "󰖖"
-                                    color: Theme.accent
-                                    font.pixelSize: 15
-                                    font.family: Theme.fontFamily
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-                                Text {
-                                    text: "Rain " + modelData.rainChance
-                                    color: Theme.fgSoft
-                                    font.pixelSize: 14
-                                    font.bold: true
-                                    font.family: Theme.fontFamily
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-                            }
+                                spacing: Math.round(12 * Theme.uiScale)
 
-                            // Row 4: 風速 & 風向 - Prominent 14px bold
-                            Row {
-                                spacing: 8
-                                Text {
-                                    text: "󰖝"
-                                    color: Theme.accent
-                                    font.pixelSize: 15
-                                    font.family: Theme.fontFamily
-                                    anchors.verticalCenter: parent.verticalCenter
+                                Row {
+                                    spacing: 4
+                                    Text {
+                                        text: "󰖖"
+                                        color: Theme.accent
+                                        font.pixelSize: Math.round(14 * Theme.uiScale)
+                                        font.family: Theme.fontFamily
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
+                                    Text {
+                                        text: modelData.rainChance
+                                        color: Theme.subtextDim
+                                        font.pixelSize: Math.round(14 * Theme.uiScale)
+                                        font.bold: true
+                                        font.family: Theme.fontFamily
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
                                 }
-                                Text {
-                                    text: (modelData.windDir ? (modelData.windDir + " ") : "") + modelData.windSpeed
-                                    color: Theme.fgSoft
-                                    font.pixelSize: 14
-                                    font.bold: true
-                                    font.family: Theme.fontFamily
-                                    anchors.verticalCenter: parent.verticalCenter
+
+                                Row {
+                                    spacing: 4
+                                    Text {
+                                        text: "󰖝"
+                                        color: Theme.accent
+                                        font.pixelSize: Math.round(14 * Theme.uiScale)
+                                        font.family: Theme.fontFamily
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
+                                    Text {
+                                        text: (modelData.windDir ? (modelData.windDir + " ") : "") + modelData.windSpeed
+                                        color: Theme.subtextDim
+                                        font.pixelSize: Math.round(14 * Theme.uiScale)
+                                        font.bold: true
+                                        font.family: Theme.fontFamily
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
                                 }
                             }
                         }
-                    }
-
-                    // Subtle vertical separator between tomorrow and day-after-tomorrow
-                    Rectangle {
-                        visible: index === 0
-                        width: 1
-                        height: 84
-                        color: Theme.border
-                        opacity: 0.25
-                        anchors.verticalCenter: parent.verticalCenter
                     }
                 }
             }
