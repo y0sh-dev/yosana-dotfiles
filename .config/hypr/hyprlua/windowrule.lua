@@ -296,13 +296,6 @@ hl.layer_rule({
     ignore_alpha = 0.5,
 })
 
- -- 3. EWW PowerMenuenu (Full-screen overlay blur)
-hl.layer_rule({
-    name         = "eww-powermenu-blur",
-    match        = { namespace = "^(eww-powerwd)$" },
-    blur         = true,
-    ignore_alpha = 0.2,
-})
 
 -- 4. Notifications (SwayNC) & System Dialogs
 hl.layer_rule({
