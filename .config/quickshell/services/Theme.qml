@@ -17,8 +17,9 @@ QtObject {
     }
 
     // Dedicated trigger file touched immediately when wallpaper workflow completes
-    property string triggerPath: "/home/yukkkk1/.cache/wal_quickshell_reload"
-    property string walPath: "/home/yukkkk1/.cache/wal/colors.json"
+    readonly property string homeDir: (Quickshell.env("HOME") || "/home/yukkkk1")
+    property string triggerPath: homeDir + "/.cache/wal_quickshell_reload"
+    property string walPath: homeDir + "/.cache/wal/colors.json"
 
     // --- Grid Dip State (Power Outage & Restoral Animation) ---
     // true: Instant power cut / dimming while switching
@@ -73,6 +74,12 @@ QtObject {
     readonly property color wsDisplayed: isGridDip ? dipFg : fgSoft // "Current white": high-clarity soft white for displayed sub-monitors
     readonly property color wsOccupied: isGridDip ? dipSubtext : Qt.tint(targetBg, Qt.rgba(1, 1, 1, 0.48)) // Subtly white, clearly distinguished from empty
     readonly property color wsEmpty: isGridDip ? dipEmpty : Qt.tint(targetBg, Qt.rgba(1, 1, 1, 0.18)) // Quiet/dim baseline for empty workspaces
+
+    // Panel Surface Tokens (Unified baseline for modular panels)
+    property int radiusPanel: 18
+    readonly property color panelBg: Qt.rgba(0, 0, 0, 0.93)
+    readonly property color panelBgSoft: Qt.rgba(0, 0, 0, 0.90)
+    readonly property color panelBorder: border
 
     // Metrics & Typography
     property int barHeight: 48

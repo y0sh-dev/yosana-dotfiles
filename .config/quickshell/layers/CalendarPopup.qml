@@ -49,7 +49,7 @@ PanelWindow {
         id: contentMonolith
         anchors.fill: parent
         // Deep obsidian black with gentle translucency (90%) allowing Hyprland blur to shine through
-        color: Qt.rgba(0, 0, 0, 0.90)
+        color: Theme.panelBgSoft
         radius: Math.round(Theme.radiusIsland * Theme.uiScale) // 20px
         border.width: 0
 

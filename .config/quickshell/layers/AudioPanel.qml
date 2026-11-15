@@ -62,9 +62,9 @@ PanelWindow {
     Rectangle {
         id: mainContainer
         anchors.fill: parent
-        radius: Math.round(18 * Theme.uiScale)
-        color: Qt.rgba(0, 0, 0, 0.93)
-        border.color: Theme.border
+        radius: Math.round(Theme.radiusPanel * Theme.uiScale)
+        color: Theme.panelBg
+        border.color: Theme.panelBorder
         border.width: 1
 
         opacity: audioPanelRoot.isOpen ? 1.0 : 0.0
