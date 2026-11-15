@@ -30,24 +30,27 @@ PanelWindow {
     anchors {
         top: true
     }
-    margins.top: Math.round(58 * Theme.uiScale) // 48 (barHeight) + 4 (topMargin) + 6 (gap)
+    margins.top: Math.max(0, Math.round(58 * Theme.uiScale) - Theme.panelSlideMargin) // 48 (barHeight) + 4 (topMargin) + 6 (gap) minus slide track
 
-    // Baseline dimensions: 920px x 472px
+    // Baseline dimensions: 920px x 472px (+ top slide track to prevent clipping)
     // At uiScale 1.0 this yields 432x432 square cards:
     //   width  = (920 - 2*20 margins - 16 gap) / 2 = 432
     //   height = 472 - 2*20 margins = 432
     // Shrinking from 540 to 472 removes the ~92px calendar bottom void while
     // preserving the deliberate 56px weekday->date breathing space.
     implicitWidth: Math.round(920 * Theme.uiScale)
-    implicitHeight: Math.round(472 * Theme.uiScale)
+    implicitHeight: Math.round(472 * Theme.uiScale) + Theme.panelSlideMargin
     color: "transparent"
 
     visible: isOpen || contentMonolith.opacity > 0
 
-    // Smooth subtle slide-down & fade
+    // Smooth unclipped slide-down & decoupled fade
     Rectangle {
         id: contentMonolith
-        anchors.fill: parent
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        height: Math.round(472 * Theme.uiScale)
         // Deep obsidian black with gentle translucency (90%) allowing Hyprland blur to shine through
         color: Theme.panelBgSoft
         radius: Math.round(Theme.radiusIsland * Theme.uiScale) // 20px
@@ -55,10 +58,22 @@ PanelWindow {
 
         opacity: calendarRoot.isOpen ? 1.0 : 0.0
         transform: Translate {
-            y: calendarRoot.isOpen ? 0 : -10
-            Behavior on y { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+            y: calendarRoot.isOpen ? 0 : -Theme.panelSlideMargin
+            Behavior on y {
+                NumberAnimation {
+                    duration: calendarRoot.isOpen ? Theme.panelArriveDuration : Theme.panelDepartDuration
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: calendarRoot.isOpen ? Theme.panelArriveCurve : Theme.panelDepartCurve
+                }
+            }
         }
-        Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+        Behavior on opacity {
+            NumberAnimation {
+                duration: calendarRoot.isOpen ? Theme.panelFadeInDuration : Theme.panelFadeOutDuration
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: calendarRoot.isOpen ? Theme.panelFadeInCurve : Theme.panelFadeOutCurve
+            }
+        }
 
         // ====================================================================
         // UNIFIED CARD LAYOUT: Left (Clock/Date & Weather) + Right (Calendar)

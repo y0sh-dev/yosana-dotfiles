@@ -81,6 +81,19 @@ QtObject {
     readonly property color panelBgSoft: Qt.rgba(0, 0, 0, 0.90)
     readonly property color panelBorder: border
 
+    // Panel Transit Animation Tokens (Synchronized with Hyprland trainArrive / trainDepart)
+    // Motion and opacity are decoupled so panels arrive as solid objects rather than fading from depth,
+    // and accelerate out before fading at the tail of departure.
+    readonly property int panelSlideMargin: Math.round(24 * uiScale)
+    readonly property int panelArriveDuration: 360
+    readonly property int panelDepartDuration: 300
+    readonly property int panelFadeInDuration: 140
+    readonly property int panelFadeOutDuration: 300
+    readonly property list<real> panelArriveCurve: [0.28, 0.01, 0.12, 1.0, 1.0, 1.0]
+    readonly property list<real> panelDepartCurve: [0.55, 0.02, 0.92, 0.16, 1.0, 1.0]
+    readonly property list<real> panelFadeInCurve: [0.25, 0.05, 0.20, 1.0, 1.0, 1.0]
+    readonly property list<real> panelFadeOutCurve: [0.75, 0.0, 0.95, 0.15, 1.0, 1.0]
+
     // Metrics & Typography
     property int barHeight: 48
     property int islandHeight: 40

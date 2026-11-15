@@ -228,7 +228,13 @@ PanelWindow {
         anchors.fill: parent
         color: "#000000"
         opacity: powerMenuRoot.isOpen ? 0.45 : 0.0
-        Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+        Behavior on opacity {
+            NumberAnimation {
+                duration: powerMenuRoot.isOpen ? Theme.panelFadeInDuration : Theme.panelFadeOutDuration
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: powerMenuRoot.isOpen ? Theme.panelFadeInCurve : Theme.panelFadeOutCurve
+            }
+        }
 
         MouseArea {
             anchors.fill: parent
@@ -252,10 +258,22 @@ PanelWindow {
         color: Qt.rgba(0, 0, 0, 0.90) // Pure matte obsidian matching Calendar Monolith
         border.width: 0 // Zero harsh white border lines
 
-        scale: powerMenuRoot.isOpen ? 1.0 : 0.94
+        scale: powerMenuRoot.isOpen ? 1.0 : 0.96
         opacity: powerMenuRoot.isOpen ? 1.0 : 0.0
-        Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-        Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+        Behavior on scale {
+            NumberAnimation {
+                duration: powerMenuRoot.isOpen ? Theme.panelArriveDuration : Theme.panelDepartDuration
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: powerMenuRoot.isOpen ? Theme.panelArriveCurve : Theme.panelDepartCurve
+            }
+        }
+        Behavior on opacity {
+            NumberAnimation {
+                duration: powerMenuRoot.isOpen ? Theme.panelFadeInDuration : Theme.panelFadeOutDuration
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: powerMenuRoot.isOpen ? Theme.panelFadeInCurve : Theme.panelFadeOutCurve
+            }
+        }
 
         // ====================================================================
         // VIEW 1: Grid Action View (Prominent Icons First, Text Second)

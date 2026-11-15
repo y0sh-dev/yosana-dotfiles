@@ -40,26 +40,32 @@ PanelWindow {
                                  ? WlrKeyboardFocus.OnDemand
                                  : WlrKeyboardFocus.None
 
+    readonly property int slideTrack: Math.round(14 * Theme.uiScale)
+
     anchors {
         bottom: true
         right: true
     }
 
     margins {
-        bottom: 14
+        bottom: 0
         right: 14
     }
 
     // Fixed instrument dimensions. Height is locked so sub-views never jump.
+    // Bottom track space absorbs the slide-up offset without clipping the panel.
     implicitWidth: Math.round(680 * Theme.uiScale)
-    implicitHeight: Math.round(600 * Theme.uiScale)
+    implicitHeight: Math.round(600 * Theme.uiScale) + slideTrack
     color: "transparent"
 
     visible: isOpen || mainContainer.opacity > 0
 
     Rectangle {
         id: mainContainer
-        anchors.fill: parent
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        height: Math.round(600 * Theme.uiScale)
         radius: Math.round(Theme.radiusPanel * Theme.uiScale)
         color: Theme.panelBg
         border.color: Theme.panelBorder
@@ -67,10 +73,22 @@ PanelWindow {
 
         opacity: networkPanelRoot.isOpen ? 1.0 : 0.0
         transform: Translate {
-            y: networkPanelRoot.isOpen ? 0 : 10
-            Behavior on y { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+            y: networkPanelRoot.isOpen ? 0 : networkPanelRoot.slideTrack
+            Behavior on y {
+                NumberAnimation {
+                    duration: networkPanelRoot.isOpen ? Theme.panelArriveDuration : Theme.panelDepartDuration
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: networkPanelRoot.isOpen ? Theme.panelArriveCurve : Theme.panelDepartCurve
+                }
+            }
         }
-        Behavior on opacity { NumberAnimation { duration: 170; easing.type: Easing.OutCubic } }
+        Behavior on opacity {
+            NumberAnimation {
+                duration: networkPanelRoot.isOpen ? Theme.panelFadeInDuration : Theme.panelFadeOutDuration
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: networkPanelRoot.isOpen ? Theme.panelFadeInCurve : Theme.panelFadeOutCurve
+            }
+        }
 
         ColumnLayout {
             anchors.fill: parent
