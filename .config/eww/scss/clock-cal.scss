@@ -1,0 +1,88 @@
+/*
+ * -------------------------
+ *  Clock & calendar Widget
+ * -------------------------
+*/
+
+.time-wraper {
+  background-color: rgba($color0, 0.8);
+  color: $color13;
+  border-radius: 16px;
+  transition: color 0.3s;
+  transition: background-color 0.3s;
+  &:hover {
+    color: $color12;
+    background-color: rgba($color0, 0.8);
+  }
+}
+
+.time-label {
+  font-size: 20px;
+  padding: 6px 18px;
+}
+
+.calendar-container{
+  box-shadow: 0 2px 3px 2px rgba($color0, 0.9);
+  margin:10px;
+  margin-bottom:15px;
+  border-radius: 20px;
+  background-color: rgba($color6, 0.8);
+  padding: 5px;
+}
+
+.time-box{
+  box-shadow: 0 2px 3px 2px rgba($color0, 0.9);
+  border-radius:15px;
+  margin-top:8px;
+  padding-left:25px;
+  padding-right:25px;
+  padding-bottom:20px;
+  background-color:rgba($color0 ,0.8);
+}
+
+.time-inner{
+  color: $color13;
+  font-size:50px;
+  margin-left:4px;
+  margin-top:10px;
+}
+
+.date-inner{
+  color: $color12;
+  margin-top:20px;
+  font-size:18px;
+}
+
+.calendar-box{
+  box-shadow: 0 2px 3px 2px rgba($color0, 0.9);
+  border-radius:15px;
+  padding-top:10px;
+  padding-left:10px;
+  padding-right:10px;
+  margin-bottom:12px;
+  background-color:rgba($color0, 0.8);
+}
+
+.cal{
+  padding:9px;
+  color: rgba($color13, 0.8);
+  &.header{
+    color: $color4;
+  }
+  &.button{
+    color: $color8;
+    &:hover{
+      color: $color1;
+    }
+  }
+  &:indeterminate{
+    color:rgba($color7, 0.3);
+  }
+  &.highlight{
+    color: $color4;
+  }
+  &:selected{
+    color: $color7;
+  }
+}
+

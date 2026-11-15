@@ -1,0 +1,24 @@
+*{
+  all:unset;
+  font-family:"FiraCode Nerd Font";
+}
+@import "./../../.cache/wal/colors.scss"
+
+ // bar widget
+@import "./scss/eww-bar.scss"
+
+ // Clock & calendar Widget
+@import "./scss/clock-cal.scss"
+
+ // powermemu widget
+@import "./scss/powermenu.scss"
+
+ // Audio manage widget
+@import "./scss/audio_manage.scss"
+
+ // Wifi widget
+@import "./scss/wifi.scss"
+
+ // Workspaces widget
+@import "./scss/workspaces.scss"
+
