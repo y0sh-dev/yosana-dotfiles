@@ -287,6 +287,15 @@ hl.layer_rule({
     xray         = false,
 })
 
+-- Quickshell Network & Bluetooth Panel Blur
+hl.layer_rule({
+    name         = "quickshell-network-blur",
+    match        = { namespace = "^(quickshell-network)$" },
+    blur         = true,
+    ignore_alpha = 0.2,
+    xray         = false,
+})
+
 -- 2. Quickshell TopBar Islands Blur (Floating bar pill blur)
 -- ignore_alpha 0.5 prevents transparent padding/gaps between islands from blurring
 hl.layer_rule({
