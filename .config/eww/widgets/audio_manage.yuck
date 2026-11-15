@@ -1,0 +1,105 @@
+;; ---------------------
+;;  Audio manage widget
+;; ---------------------
+
+(defwindow select_sinks
+    :monitor 0
+    :stacking "overlay"
+    :geometry (geometry :anchor "top right"
+                        :y "-10px"
+                        :width "360px"
+                        :height "420px"
+              )
+    (expander :expanded true
+              :halign "end"
+              (revealer :transition "slideleft"
+                        :reveal sinksrev
+                        :duration "320ms"
+                        (select_sinks_event)
+              )
+    )
+)
+
+(defvar sinksrev false)
+
+(defwidget select_sinks_event []
+    (eventbox :onhoverlost "./scripts/volumebar.sh"
+              (sinks_changer)
+    )
+)
+
+(defwidget sinks_changer []
+    (box :class "sinks_select_container"
+         :orientation "v"
+         :space-evenly false
+         :spacing 15
+         (box :class "sinks_select_box1"
+              :orientation "v"
+              :space-evenly false
+              :spacing 10
+              (box :class "sinks_select_boxinfo" :halign "start" (label :text "Audio sink menu: "))
+              (literal :content sinks-output)
+              (box :class "set-mute-box"
+                    :spacing 10
+                    :space-evenly false
+                    :halign "start"
+                    :orientation "h"
+                    (eventbox :class "mute" :cursor "pointer" :onclick "wpctl set-mute @DEFAULT_AUDIO_SINK@ 0" (box :class "set-mute" (label :text " ")))
+                    (eventbox :class "mute" :cursor "pointer" :onclick "wpctl set-mute @DEFAULT_AUDIO_SINK@ 1" (box :class "set-mute" (label :text " ")))
+              )
+         )
+         (box :class "volume_scroll_box"
+              (box :class "volume-scroll-inner"
+                   :orientation "h"
+                   :space-evenly false
+                   :spacing 10
+                   :valign "center"
+                   (box :class "volume-select-label"
+                        (label :text "${volume-state.mute == 1 ? '󰖁 ' :
+                                        volume-state.vol == 0 ? '󰝟 ' :
+                                        volume-state.vol < 50 ? '󰖀 ' : '󰕾 '}"
+                        )
+                   )
+                   (eventbox :cursor "pointer"
+                             (scale :class "volume-control-bar"
+                                    :value "${volume-state.vol}"
+                                    :orientation "horizontal"
+                                    :max 101
+                                    :min 0
+                                    :onchange "wpctl set-volume @DEFAULT_AUDIO_SINK@ {}%"
+                             )
+                   )
+              )
+         )
+    )
+)
+
+(defwidget volume []
+         (box :class "volume-wraper"
+              :orientation "h"
+              :space-evenly false
+              :spacing -2
+              :valign "center"
+              (eventbox  :class "volume-label"
+                         :space-evenly false
+                         :cursor "pointer"
+                         :onscroll "if [ '{}' == 'up' ]; then 
+                                      [ ${volume-state.vol} -lt 100 ] && pactl set-sink-volume @DEFAULT_SINK@ +1%;
+                                    else
+                                      pactl set-sink-volume @DEFAULT_SINK@ -1%;
+                                    fi"
+                         :onclick "./scripts/volumebar.sh"
+                         (label :text "${volume-state.mute == 1 ? '󰖁 ' :
+                                         volume-state.vol == 0 ? '󰝟 ' :
+                                         volume-state.vol < 50 ? '󰖀 ' : '󰕾 '}")
+              )
+              ;; 
+              (box :class "volume-bar"
+                   (label :text "${volume-state.vol}%"
+                          :width 40
+                          :halign "right"
+                   )
+              )
+         )
+)
+

@@ -48,31 +48,47 @@ PanelWindow {
     }
 
     margins {
-        top: 54
+        top: Math.max(0, 54 - Theme.panelSlideMargin)
         right: 14
     }
 
     // Monolithic fixed dimensions preserving the hardware instrument aesthetic (500x440)
+    // Extra top track space prevents surface clipping during slide transitions
     implicitWidth: Math.round(500 * Theme.uiScale)
-    implicitHeight: Math.round(440 * Theme.uiScale)
+    implicitHeight: Math.round(440 * Theme.uiScale) + Theme.panelSlideMargin
     color: "transparent"
 
     visible: isOpen || mainContainer.opacity > 0
 
     Rectangle {
         id: mainContainer
-        anchors.fill: parent
-        radius: Math.round(18 * Theme.uiScale)
-        color: Qt.rgba(0, 0, 0, 0.93)
-        border.color: Theme.border
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        height: Math.round(440 * Theme.uiScale)
+        radius: Math.round(Theme.radiusPanel * Theme.uiScale)
+        color: Theme.panelBg
+        border.color: Theme.panelBorder
         border.width: 1
 
         opacity: audioPanelRoot.isOpen ? 1.0 : 0.0
         transform: Translate {
-            y: audioPanelRoot.isOpen ? 0 : -8
-            Behavior on y { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+            y: audioPanelRoot.isOpen ? 0 : -Theme.panelSlideMargin
+            Behavior on y {
+                NumberAnimation {
+                    duration: audioPanelRoot.isOpen ? Theme.panelArriveDuration : Theme.panelDepartDuration
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: audioPanelRoot.isOpen ? Theme.panelArriveCurve : Theme.panelDepartCurve
+                }
+            }
         }
-        Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+        Behavior on opacity {
+            NumberAnimation {
+                duration: audioPanelRoot.isOpen ? Theme.panelFadeInDuration : Theme.panelFadeOutDuration
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: audioPanelRoot.isOpen ? Theme.panelFadeInCurve : Theme.panelFadeOutCurve
+            }
+        }
 
         // Content Area with strict margins
         Item {

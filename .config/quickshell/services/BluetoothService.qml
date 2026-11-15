@@ -8,7 +8,7 @@ import Quickshell.Io
 QtObject {
     id: bluetoothService
 
-    readonly property string script: "/home/yukkkk1/.config/quickshell/scripts/bt_manager.py"
+    readonly property string script: Quickshell.shellDir + "/scripts/bt_manager.py"
 
     property bool active: false
 

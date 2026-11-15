@@ -1,0 +1,149 @@
+/*
+ * ---------------
+ *  Volume widget
+ * ---------------
+*/
+
+.volume-bar{
+  font-size: 16;
+  margin-right: -2px;
+}
+
+.volume-wraper {
+  background-color: rgba($color0, 0.8);
+  padding: 6px 16px;
+  border-radius: 16px;
+  color: $color13;
+}
+
+.volume-label {
+  font-size: 20px;
+  &:hover{
+    color: rgba($color7, 0.9);
+  }
+}
+
+.sinks_select_container{
+  padding: 10px;
+}
+
+.sinks_select_box1{
+  box-shadow: 0 2px 3px 2px rgba($color0, 0.9);
+  border-radius: 12px;
+  background-color: rgba($color6, 0.8);
+  padding: 4px 15px;
+}
+
+.sinks_select_boxinfo{
+  margin-top: 8px;
+  box-shadow: 0 1px 2px 1px rgba($color0, 0.9);
+  padding: 8px 18px;
+  border-radius: 12px;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  background-color: rgba($color0, 0.7);
+  color: $color13;
+  font-size:20px;
+}
+
+.sinks_selector_box{
+  box-shadow: 0 2px 3px 2px rgba($color0, 0.9);
+  border-radius: 12px;
+  padding: 10px 15px;
+  margin-bottom: 4px;
+  background-color:rgba($color0 ,0.7);
+}
+
+.sink-item-box{
+  border-radius: 16px;
+  color: $color13;
+  background-color: rgba($color0, 0.25);
+  &:hover{
+    color: $color12;
+    background-color: rgba($color0, 0.5);
+  }
+}
+
+.sink-item{
+  box-shadow: 0 1px 2px 1px rgba($color0, 0.9);
+  padding: 5px 20px;
+  border-radius: 16px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  margin-right: 2px;
+  font-size: 18px;
+}
+
+.sink-item-active{
+  box-shadow: 0 1px 2px 1px rgba($color0, 0.9);
+  padding: 5px 20px;
+  border-radius: 16px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  margin-right: 2px;
+  font-size: 18px;
+}
+
+.set-mute-box{
+  box-shadow: 0 2px 3px 2px rgba($color0, 0.9);
+  border-radius: 12px;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+  background-color:rgba($color0 ,0.7);
+}
+
+.mute{
+  border-radius: 18px;
+  color: $color13;
+  background-color: rgba($color0, 0.25);
+  &:hover{
+    color: $color12;
+    background-color: rgba($color0, 0.5);
+  }
+}
+
+.set-mute{
+  box-shadow: 0 1px 2px 1px rgba($color0, 0.9);
+  padding: 6px 14px;
+  border-radius: 16px;
+  margin-top: 3px;
+  margin-bottom: 3px;
+  margin-left: 2px;
+  margin-right: 2px;
+  font-size: 18px;
+}
+
+.volume_scroll_box{
+  box-shadow: 0 2px 3px 2px rgba($color0, 0.9);
+  border-radius: 12px;
+  background-color: rgba($color6, 0.8);
+  padding: 12px 15px;
+}
+
+.volume-scroll-inner{
+  box-shadow: 0 2px 3px 2px rgba($color0, 0.9);
+  border-radius: 12px;
+  margin-bottom: 2px;
+  padding: 10px 15px;
+  background-color:rgba($color0 ,0.7);
+}
+
+.volume-select-label{
+  font-size: 22px;
+  color: $color13;
+}
+
+.volume-control-bar trough {
+  background-color: mix($background, $foreground, 80%);
+  border-radius: 5px;
+  min-height: 8px;
+  min-width: 175px;
+  margin: 6px 0;
+}
+
+.volume-control-bar trough highlight {
+  min-height: 8px;
+  background-color: mix($color5, $foreground, 90%);
+  border-radius: 5px;
+}
+

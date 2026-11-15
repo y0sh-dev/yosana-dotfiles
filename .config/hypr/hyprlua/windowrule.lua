@@ -259,7 +259,7 @@ hl.window_rule({
 --- LAYER RULES      ---
 ------------------------
 
--- 1. Quickshell PowerMenu (Full-screen overlay blur)
+-- 1. Quickshell PowerMenu (Full-screen overlay blur; QML owns the transition)
 -- Backdrop dim is opacity 0.38; ignore_alpha 0.2 ensures the entire screen is blurred smoothly
 hl.layer_rule({
     name         = "quickshell-powermenu-blur",
@@ -267,24 +267,37 @@ hl.layer_rule({
     blur         = true,
     ignore_alpha = 0.2,
     xray         = false,
+    no_anim      = true,
 })
 
--- Quickshell Calendar & Meteorology Popup Blur
+-- Quickshell Calendar & Meteorology Popup Blur (QML handles top-down descent)
 hl.layer_rule({
     name         = "quickshell-calendar-blur",
     match        = { namespace = "^(calendar)$" },
     blur         = true,
     ignore_alpha = 0.2,
     xray         = false,
+    no_anim      = true,
 })
 
--- Quickshell Audio Panel Blur
+-- Quickshell Audio Panel Blur (QML handles top-right descent)
 hl.layer_rule({
     name         = "quickshell-audio-blur",
     match        = { namespace = "^(quickshell-audio)$" },
     blur         = true,
     ignore_alpha = 0.2,
     xray         = false,
+    no_anim      = true,
+})
+
+-- Quickshell Network & Bluetooth Panel Blur (QML handles bottom-right ascent)
+hl.layer_rule({
+    name         = "quickshell-network-blur",
+    match        = { namespace = "^(quickshell-network)$" },
+    blur         = true,
+    ignore_alpha = 0.2,
+    xray         = false,
+    no_anim      = true,
 })
 
 -- 2. Quickshell TopBar Islands Blur (Floating bar pill blur)
@@ -294,16 +307,24 @@ hl.layer_rule({
     match        = { namespace = "^(quickshell)$" },
     blur         = true,
     ignore_alpha = 0.5,
+    no_anim      = true,
 })
 
+-- 3. Rofi Launcher (Independent transit animation)
+hl.layer_rule({
+    name      = "rofi-transit",
+    match     = { namespace = "^(rofi)$" },
+    animation = "slidefade 10%",
+})
 
--- 4. Notifications (SwayNC) & System Dialogs
+-- 4. Notifications (SwayNC) & System Dialogs (Slide in smoothly from right edge)
 hl.layer_rule({
     name         = "notifications-and-dialogs-blur",
     match        = { namespace = "^(swaync-control-center|swaync-notification-window|dunst|notifications|logout_dialog)$" },
     blur         = true,
     ignore_alpha = 0.2,
     xray         = false,
+    animation    = "slide right",
 })
 
 -- 5. Fast UI Tools (Disable animations for instant response)

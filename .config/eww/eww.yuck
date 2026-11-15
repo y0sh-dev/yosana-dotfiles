@@ -1,0 +1,45 @@
+;; ###################################################
+;; #### EWW setting conf (~/.config/eww/eww.yuck) ####
+;; ###################################################
+
+;; ---------------------
+;;  variable definition
+;; ---------------------
+
+;; get tmme
+(defpoll get_time :interval "1s" `date +'{"hm":"%H:%M", "hms":"%H:%M:%S", "day":"%Y/%m/%d  %A"}'`)
+
+;; get workspaces info
+(deflisten workspaces-output :initial "" "./scripts/gets_workspaces_eww.sh")
+
+;; get audio info
+(deflisten volume-state :initial '{"vol": 0, "mute": 1}' "./scripts/get_volume.sh")
+(deflisten sinks-output :initial "" "./scripts/get_sinks_literal.sh")
+
+;; get wifi info
+(deflisten wifi-output :initial "" "./scripts/get_wifi.sh") 
+
+;; ---------------------------
+;;  include windows & widgets
+;; ---------------------------
+
+;; Top bar window & widget
+(include "./widgets/eww-bar.yuck")
+
+;; time & cal widgets
+(include "./widgets/clock-cal.yuck")
+
+;; powermenu widgets
+(include "./widgets/powermenu.yuck")
+
+;; audio (volume)  widgets
+(include "./widgets/audio_manage.yuck")
+
+;; wifi widgets
+(include "./widgets/wifi.yuck")
+
+;; workspaces widgets
+(defwidget workspaces []
+    (literal :content workspaces-output)
+)
+

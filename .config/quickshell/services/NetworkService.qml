@@ -67,7 +67,7 @@ QtObject {
     // ── Realtime telemetry stream (event-driven, 1.5s cadence) ──────
     property var netSubProc: Process {
         id: netSubProcess
-        command: ["python3", "-u", "/home/yukkkk1/.config/quickshell/scripts/net_monitor.py"]
+        command: ["python3", "-u", Quickshell.shellDir + "/scripts/net_monitor.py"]
         running: true
 
         stdout: SplitParser {
@@ -122,7 +122,7 @@ QtObject {
     // ── Wi-Fi scan ──────────────────────────────────────────────────
     property var scanProc: Process {
         id: scanProcess
-        command: ["python3", "/home/yukkkk1/.config/quickshell/scripts/wifi_scan.py"]
+        command: ["python3", Quickshell.shellDir + "/scripts/wifi_scan.py"]
         stdout: StdioCollector {
             onDataChanged: {
                 var raw = (data || "").toString().trim();

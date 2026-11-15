@@ -1,0 +1,108 @@
+/*
+ * ------------------
+ *  powermemu widget
+ * ------------------
+*/
+
+.powermenu-bar{
+  border-radius: 16px;
+  color: rgba($color13, 0.9);
+  background-color: rgba($color0, 0.8);
+  &:hover{
+    color: rgba($color7, 0.9);
+  }
+}
+
+.powermenu-label{
+  font-size: 20px;
+  padding: 6px 16px;
+}
+
+.powermenu-container{
+  background-color: rgb(13, 0, 21, 0.4);
+  padding: 570px 0px;
+}
+
+.powermenu-box{
+  background-color: rgb(13, 0, 21, 0.9);
+  border-radius: 20px;
+  padding: 40px 50px;
+}
+
+.powermenu-block1{
+  background-color: transparent;
+}
+
+.powermenu-block2{
+  background-color: transparent;
+}
+
+.powerbutton{
+  background-color: rgb(0, 0, 0);
+  border-radius: 20px;
+  &:hover{
+    color: rgb(256, 256, 256);
+  }
+}
+
+.pwbutton{
+  font-size: 100px;
+  padding-left: 40px;
+}
+
+.shutdown{
+  color: rgb(255, 127, 80);
+  &:hover{
+    background-color: rgb(255, 127, 80);
+  }
+}
+
+.logout{
+  color: rgb(255, 215, 0);
+  &:hover{
+    background-color: rgb(255, 215, 0);
+
+  }
+}
+
+.lock{
+  color: rgb(65, 105, 225);
+  &:hover{
+    background-color: rgb(65, 105, 225);
+  }
+}
+
+.reboot{
+  color: rgb(148, 0, 211);
+  &:hover{
+    background-color: rgb(148, 0, 211);
+  }
+}
+
+.sleep{
+  color: rgb(0, 255, 127);
+  &:hover{
+    background-color: rgb(0, 255, 127);
+  }
+}
+
+.hibernate{
+  color: rgb(173, 216, 230);
+  &:hover{
+    background-color: rgb(173, 216, 230);
+  }
+}
+
+.cancel{
+  font-size: 35;
+  font-weight: 600;
+  background-color: rgb(236, 109, 113, 0.3);
+  color: rgb(250, 5, 30);
+  padding: 5px 12px;
+  border-radius: 12px;
+  &:hover{
+    color: rgb(256, 256, 256);
+    background-color: rgb(250, 5, 30, 0.7);
+  }
+}
+

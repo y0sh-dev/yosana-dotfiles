@@ -17,8 +17,9 @@ QtObject {
     }
 
     // Dedicated trigger file touched immediately when wallpaper workflow completes
-    property string triggerPath: "/home/yukkkk1/.cache/wal_quickshell_reload"
-    property string walPath: "/home/yukkkk1/.cache/wal/colors.json"
+    readonly property string homeDir: (Quickshell.env("HOME") || "/home/yukkkk1")
+    property string triggerPath: homeDir + "/.cache/wal_quickshell_reload"
+    property string walPath: homeDir + "/.cache/wal/colors.json"
 
     // --- Grid Dip State (Power Outage & Restoral Animation) ---
     // true: Instant power cut / dimming while switching
@@ -73,6 +74,25 @@ QtObject {
     readonly property color wsDisplayed: isGridDip ? dipFg : fgSoft // "Current white": high-clarity soft white for displayed sub-monitors
     readonly property color wsOccupied: isGridDip ? dipSubtext : Qt.tint(targetBg, Qt.rgba(1, 1, 1, 0.48)) // Subtly white, clearly distinguished from empty
     readonly property color wsEmpty: isGridDip ? dipEmpty : Qt.tint(targetBg, Qt.rgba(1, 1, 1, 0.18)) // Quiet/dim baseline for empty workspaces
+
+    // Panel Surface Tokens (Unified baseline for modular panels)
+    property int radiusPanel: 18
+    readonly property color panelBg: Qt.rgba(0, 0, 0, 0.93)
+    readonly property color panelBgSoft: Qt.rgba(0, 0, 0, 0.90)
+    readonly property color panelBorder: border
+
+    // Panel Transit Animation Tokens (Synchronized with Hyprland trainArrive / trainDepart)
+    // Motion and opacity are decoupled so panels arrive as solid objects rather than fading from depth,
+    // and accelerate out before fading at the tail of departure.
+    readonly property int panelSlideMargin: Math.round(24 * uiScale)
+    readonly property int panelArriveDuration: 360
+    readonly property int panelDepartDuration: 300
+    readonly property int panelFadeInDuration: 140
+    readonly property int panelFadeOutDuration: 300
+    readonly property list<real> panelArriveCurve: [0.28, 0.01, 0.12, 1.0, 1.0, 1.0]
+    readonly property list<real> panelDepartCurve: [0.55, 0.02, 0.92, 0.16, 1.0, 1.0]
+    readonly property list<real> panelFadeInCurve: [0.25, 0.05, 0.20, 1.0, 1.0, 1.0]
+    readonly property list<real> panelFadeOutCurve: [0.75, 0.0, 0.95, 0.15, 1.0, 1.0]
 
     // Metrics & Typography
     property int barHeight: 48

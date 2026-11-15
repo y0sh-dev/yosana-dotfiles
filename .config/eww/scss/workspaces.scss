@@ -1,0 +1,30 @@
+/*
+ * -------------------
+ *  Workspaces widget
+ * -------------------
+*/
+
+.ws{
+  background-color: rgba($color0, 0.8);
+  padding: 6px 16px;
+  border-radius: 16px;
+}
+
+.ws-focused label, .ws-displayed label, .ws-inactive label {
+    font-size: 20px;
+}
+
+.ws-focused label {
+    // color: rgb(256, 256, 256);
+    color: $color13;
+}
+
+.ws-displayed label {
+    // color: rgb(256, 256, 256);
+    color: $color13;
+}
+
+.ws-inactive label {
+    color: rgba($color7, 0.75);
+}
+

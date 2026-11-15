@@ -1,0 +1,68 @@
+;; ------------------------- 
+;;  Time & Calendar widget 
+;; -------------------------
+
+(defwindow calendar
+    :monitor 0
+    :stacking "overlay"
+    :geometry (geometry :anchor "top center"
+                        :y "-10px"
+                        :width "360px"
+                        :height "41%"
+              )
+    (expander :expanded true
+              (revealer :transition "slidedown"
+                        :reveal calrev
+                        :duration "280ms"
+                        (calendar_event)
+              )
+    )
+)
+
+(defvar calrev false)
+
+(defwidget calendar_event []
+    (eventbox :onhoverlost "./scripts/calendar.sh"
+              (calendar_widget :time get_time
+         )
+    )
+)
+
+(defwidget calendar_widget[time]
+    (box :class "calendar-container"
+         :orientation "v"
+         :spacing 16
+         :space-evenly false
+         (box :class "time-box"
+              :orientation "v"
+              :halign "center"
+              :space-evenly false
+              (box :class "time-inner"
+                   (label :text "${time.hms}")
+              )
+              (box :class "date-inner"
+                   (label :text "${time.day}")
+              )
+         )
+         (box :class "calendar-box"
+              :halign "center"
+              (calendar :class "cal")
+         )
+    )
+)
+
+(defvar time_hover false)
+
+(defwidget time [time]
+    (eventbox :cursor "pointer"
+              :onclick "./scripts/calendar.sh"
+              :onhover "${EWW_CMD} update time_hover=true"
+              :onhoverlost "${EWW_CMD} update time_hover=false"
+              :valign "center"
+              :class "time-wraper"
+              (box  :class "time-label"
+                    (label :text {time_hover ? time.hms : time.hm})
+              )
+    )
+)
+

@@ -1,11 +1,14 @@
 // Root shell configuration
 import Quickshell
 import Quickshell.Hyprland
+import Quickshell.Io
+import Quickshell.Services.Mpris
 import Quickshell.Wayland
 import "./services"
 import "./layers"
 
 ShellRoot {
+    id: root
     HyprlandState { id: hyprlandLogic }
 
     TopBar { 
@@ -63,5 +66,33 @@ ShellRoot {
 
     PowerMenu {
         id: powerMenu
+    }
+
+    function activeMprisPlayer() {
+        const players = Mpris.players.values;
+        for (let i = 0; i < players.length; i++) {
+            if (players[i] && players[i].isPlaying) return players[i];
+        }
+        return players.length > 0 ? players[0] : null;
+    }
+
+    // Native MPRIS IPC bridge (replaces external playerctl dependency)
+    IpcHandler {
+        target: "media"
+
+        function playPause(): void {
+            const target = root.activeMprisPlayer();
+            if (target) target.togglePlaying();
+        }
+
+        function next(): void {
+            const target = root.activeMprisPlayer();
+            if (target) target.next();
+        }
+
+        function previous(): void {
+            const target = root.activeMprisPlayer();
+            if (target) target.previous();
+        }
     }
 }

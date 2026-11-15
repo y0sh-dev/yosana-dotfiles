@@ -1,0 +1,137 @@
+/*
+ * -------------
+ *  Wifi widget
+ * -------------
+*/
+
+.wifi-label{
+  font-size: 17px;
+  padding: 8px 16px;
+  margin-right: 0px;
+}
+
+.wifi-wraper{
+  background-color: rgba($color0, 0.8);
+  color: $color13;
+  border-radius: 16px;
+  &:hover{
+    color: rgba($color7, 0.9);
+  }
+}
+
+.wifi-container{
+  box-shadow: 0 2px 3px 2px rgba($color0, 0.9);
+  border-radius: 12px;
+  background-color: rgba($color6, 0.8);
+  padding: 4px 15px;
+}
+
+.manage-info-box{
+  margin-top: 8px;
+  box-shadow: 0 1px 2px 1px rgba($color0, 0.9);
+  padding: 8px 18px;
+  border-radius: 12px;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  background-color: rgba($color0, 0.7);
+  color: $color13;
+  font-size:20px;
+}
+
+.ssid-list-box{
+  box-shadow: 0 2px 3px 2px rgba($color0, 0.9);
+  border-radius: 12px;
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  background-color:rgba($color0 ,0.7);
+}
+
+.ssid-item-box{
+  border-radius: 16px;
+  color: $color13;
+  background-color: rgba($color0, 0.25);
+  &:hover{
+    color: $color12;
+    background-color: rgba($color0, 0.5);
+  }
+}
+
+.ssid-item{
+  box-shadow: 0 1px 2px 1px rgba($color0, 0.9);
+  padding: 5px 20px;
+  border-radius: 16px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  margin-right: 2px;
+  font-size: 18px;
+}
+
+.manage-box{
+  box-shadow: 0 2px 3px 2px rgba($color0, 0.9);
+  border-radius: 12px;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+  background-color:rgba($color0 ,0.7);
+  font-size: 18px;
+}
+
+.manage-title{
+  font-size: 20px;
+  color: $color13;
+}
+
+.wifi-input{
+  min-height: 25px;
+  padding: 5px 10px;
+  font-size: 16px;
+  border-radius: 12px;
+  background-color: $color0;;
+}
+
+.button-group{
+  border-radius: 12px;
+}
+
+.btn-conn{
+  border-radius: 12px;
+  &:hover{
+    color: $color12;
+    background-color: rgba($color0, 0.5);
+  }
+}
+
+.btn-conn-box{
+  box-shadow: 0 2px 3px 2px rgba($color0, 0.9);
+  border-radius: 12px;
+  padding: 4px 16px;
+  margin-left: 5px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  background-color:rgba($color0 ,0.7);
+  color: $color13;
+  background-color: rgba($color0, 0.25);
+}
+
+.btn-disc-box{
+  box-shadow: 0 2px 3px 2px rgba($color0, 0.9);
+  border-radius: 12px;
+  padding: 4px 16px;
+  margin-left: 5px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  background-color:rgba($color0 ,0.7);
+  color: $color13;
+  background-color: rgba($color0, 0.25);
+}
+
+.btn-rem-box{
+  box-shadow: 0 2px 3px 2px rgba($color0, 0.9);
+  border-radius: 12px;
+  padding: 4px 16px;
+  margin-left: 5px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  background-color:rgba($color0 ,0.7);
+  color: $color13;
+  background-color: rgba($color0, 0.25);
+}

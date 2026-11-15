@@ -6,9 +6,10 @@ import Quickshell.Io
 QtObject {
     id: weatherService
 
-    property string scriptPath: "/home/yukkkk1/.config/quickshell/scripts/weather.py"
-    property string cacheFile: "/home/yukkkk1/.config/quickshell/weather_cache.json"
-    property string locationsFile: "/home/yukkkk1/.config/quickshell/weather_locations.json"
+    readonly property string baseDir: Quickshell.shellDir
+    property string scriptPath: baseDir + "/scripts/weather.py"
+    property string cacheFile: baseDir + "/weather_cache.json"
+    property string locationsFile: baseDir + "/weather_locations.json"
 
     // Active City Information
     property string currentCityName: "東京 (23区)"
